@@ -38,8 +38,8 @@
 | Member 2 | Justin Basilides | Frontend Engineer | Task 2 |
 | Member 3 | Aian Cuento | Database & Backend Engineer | Task 3 |
 | Member 4 | Calvin Bellen | QA & Security Engineer | Task 4 |
+
 ---
----|---|---|
 
 ## 2. Task 1 — Requirements Analysis & Prompt Architecture
 
