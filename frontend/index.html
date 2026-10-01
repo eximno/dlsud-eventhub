@@ -97,6 +97,10 @@
                         </select>
                     </div>
                     <div class="toolbar__actions toolbar__field">
+                        <!-- Results update as you type, but the form still has a
+                             real submit button: WCAG technique H32, and an
+                             affordance for anyone who expects to press one. -->
+                        <button type="submit" class="btn btn--primary" id="apply-filters">Search</button>
                         <button type="button" class="btn btn--secondary" id="clear-filters">Clear filters</button>
                     </div>
                 </form>

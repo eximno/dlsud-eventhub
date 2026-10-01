@@ -286,6 +286,13 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
     box-shadow: var(--shadow-sm);
 }
 .toolbar__field { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
+.toolbar__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+.toolbar__actions .btn { flex: 1 1 auto; }
+
 .toolbar__meta {
     margin-top: 1rem;
     font-size: .95rem;

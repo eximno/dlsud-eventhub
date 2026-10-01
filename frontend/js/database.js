@@ -16,7 +16,7 @@ window.EventHubDB = (function () {
     'use strict';
 
     /* Bump when schema.sql changes so stale snapshots are discarded. */
-    var SCHEMA_VERSION = 3;
+    var SCHEMA_VERSION = 1;
     var STORAGE_KEY = 'dlsud-eventhub.snapshot.v' + SCHEMA_VERSION;
     var LEGACY_KEY_PREFIX = 'dlsud-eventhub.snapshot.v';
 
@@ -85,7 +85,8 @@ window.EventHubDB = (function () {
             window.localStorage.setItem(probe, '1');
             window.localStorage.removeItem(probe);
             return true;
-        } catch (error) {
+        } catch {
+            /* Private browsing, blocked origin or full quota. */
             return false;
         }
     }
@@ -118,7 +119,7 @@ window.EventHubDB = (function () {
                     window.localStorage.removeItem(key);
                 }
             }
-        } catch (error) { /* nothing we can do, and nothing that matters */ }
+        } catch { /* nothing we can do, and nothing that matters */ }
     }
 
     function readSnapshot() {
@@ -126,9 +127,9 @@ window.EventHubDB = (function () {
             var text = window.localStorage.getItem(STORAGE_KEY);
             if (!text) { return null; }
             return base64ToBytes(text);
-        } catch (error) {
+        } catch {
             state.warnings.push('Saved prototype data could not be read and was ignored.');
-            try { window.localStorage.removeItem(STORAGE_KEY); } catch (ignored) { /* noop */ }
+            try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
             return null;
         }
     }
@@ -138,7 +139,7 @@ window.EventHubDB = (function () {
         try {
             window.localStorage.setItem(STORAGE_KEY, bytesToBase64(db.export()));
             return true;
-        } catch (error) {
+        } catch {
             /* Most likely QuotaExceededError. Degrade to in-memory only and
              * say so, rather than failing the user's action. */
             state.persistence = 'unavailable';
@@ -203,9 +204,9 @@ window.EventHubDB = (function () {
                 try {
                     db = openSnapshot(SQL, snapshot);
                     state.source = 'snapshot';
-                } catch (error) {
+                } catch {
                     state.warnings.push('Saved prototype data was outdated and has been rebuilt.');
-                    try { window.localStorage.removeItem(STORAGE_KEY); } catch (ignored) { /* noop */ }
+                    try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
                 }
             }
 
@@ -307,7 +308,7 @@ window.EventHubDB = (function () {
             connection.run('COMMIT');
             return result;
         } catch (error) {
-            try { connection.run('ROLLBACK'); } catch (ignored) { /* noop */ }
+            try { connection.run('ROLLBACK'); } catch { /* noop */ }
             throw error;
         }
     }

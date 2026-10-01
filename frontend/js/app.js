@@ -89,11 +89,17 @@
         }
     }
 
-    function showState(container, heading, message) {
+    /**
+     * Replace a container with an "empty / error" state box.
+     * @param {string} [level] heading level for the state's title. Pass 'h1'
+     *        when this state IS the page's main content, so the page is not
+     *        left without a level-one heading.
+     */
+    function showState(container, heading, message, level) {
         container.textContent = '';
         var box = document.createElement('div');
         box.className = 'state';
-        var title = document.createElement('h3');
+        var title = document.createElement(level || 'h3');
         title.textContent = heading;
         box.appendChild(title);
         if (message) {
@@ -410,7 +416,7 @@
             panel.textContent = '';
             document.title = 'Event not found - DLSUD EventHub';
             if (crumb) { crumb.textContent = 'Event not found'; }
-            showState(article, 'Event not found', message);
+            showState(article, 'Event not found', message, 'h1');
             var back = document.createElement('p');
             var link = document.createElement('a');
             link.className = 'btn btn--primary';
@@ -1025,7 +1031,7 @@
         }).catch(function (error) {
             fatal(alertBox, error);
             showState(byId('admin-content'), 'Dashboard unavailable',
-                'The prototype database could not be opened, so there is nothing to display.');
+                'The prototype database could not be opened, so there is nothing to display.', 'h2');
         });
     }
 

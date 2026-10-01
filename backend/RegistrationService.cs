@@ -551,25 +551,46 @@ public sealed class SqliteRegistrationRepository : IRegistrationRepository
             EventDate: eventDate);
     }
 
-    public StudentRecord? FindStudentByEmail(string email) =>
-        FindStudent("u.email = $value", RegistrationRules.NormalizeEmail(email));
-
-    public StudentRecord? FindStudentByStudentId(string studentId) =>
-        FindStudent("u.student_id = $value", RegistrationRules.CleanText(studentId));
-
-    // The only part of the SQL that varies is a fixed predicate chosen by this
-    // class - never by user input. The VALUE is always bound.
-    private StudentRecord? FindStudent(string predicate, string value)
+    // Each lookup holds its own complete, constant SQL string. The two queries
+    // differ by one column, which would be tempting to pass in as a predicate
+    // and concatenate - but then CommandText would no longer be a constant,
+    // and "we never build SQL by concatenation" would stop being true. A
+    // duplicated literal is the cheaper price.
+    public StudentRecord? FindStudentByEmail(string email)
     {
         using SqliteConnection connection = OpenConnection();
         using SqliteCommand command = connection.CreateCommand();
 
         command.CommandText =
-            "SELECT u.user_id, u.student_id, u.email FROM users u WHERE " +
-            predicate + " LIMIT 1;";
-        command.Parameters.AddWithValue("$value", value);
+            @"SELECT u.user_id, u.student_id, u.email
+                FROM users u
+               WHERE u.email = $email
+               LIMIT 1;";
+        command.Parameters.AddWithValue("$email", RegistrationRules.NormalizeEmail(email));
 
         using SqliteDataReader reader = command.ExecuteReader();
+        return ReadStudent(reader);
+    }
+
+    public StudentRecord? FindStudentByStudentId(string studentId)
+    {
+        using SqliteConnection connection = OpenConnection();
+        using SqliteCommand command = connection.CreateCommand();
+
+        command.CommandText =
+            @"SELECT u.user_id, u.student_id, u.email
+                FROM users u
+               WHERE u.student_id = $studentId
+               LIMIT 1;";
+        command.Parameters.AddWithValue("$studentId", RegistrationRules.CleanText(studentId));
+
+        using SqliteDataReader reader = command.ExecuteReader();
+        return ReadStudent(reader);
+    }
+
+    /// <summary>Maps the first row, or null when the query matched nothing.</summary>
+    private static StudentRecord? ReadStudent(SqliteDataReader reader)
+    {
         if (!reader.Read())
         {
             return null;

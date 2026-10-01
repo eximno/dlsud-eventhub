@@ -64,7 +64,11 @@
                 </dl>
 
                 <h2 id="events-heading">Events and capacity</h2>
-                <div class="table-scroll" role="region" aria-labelledby="events-heading" tabindex="0">
+                <!-- A focusable, labelled scroll region: narrow screens scroll
+                     the table sideways, and keyboard users can reach and scroll
+                     it. <section> is used instead of a div with an ARIA region
+                     role, because native semantics are preferred over ARIA. -->
+                <section class="table-scroll" aria-labelledby="events-heading" tabindex="0">
                     <table class="data">
                         <caption>All events, newest first</caption>
                         <thead>
@@ -81,7 +85,7 @@
                             <tr><td colspan="6">Loading events&hellip;</td></tr>
                         </tbody>
                     </table>
-                </div>
+                </section>
 
                 <h2 id="attendees-heading" style="margin-top:2.5rem">Attendees</h2>
                 <div class="toolbar" id="attendee-form">
@@ -95,7 +99,7 @@
                 </div>
                 <p class="toolbar__meta" id="attendee-meta" role="status" aria-live="polite"></p>
 
-                <div class="table-scroll" role="region" aria-labelledby="attendees-heading" tabindex="0">
+                <section class="table-scroll" aria-labelledby="attendees-heading" tabindex="0">
                     <table class="data">
                         <caption id="attendee-caption">Attendees</caption>
                         <thead>
@@ -112,7 +116,7 @@
                             <tr><td colspan="6">Loading attendees&hellip;</td></tr>
                         </tbody>
                     </table>
-                </div>
+                </section>
             </div>
         </div>
     </main>
