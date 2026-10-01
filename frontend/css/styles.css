@@ -286,8 +286,13 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
 }
 .toolbar__actions .btn { flex: 1 1 auto; }
 
-/* A toolbar holding one control should not stretch the full page width. */
-.toolbar--single { max-width: 34rem; }
+/* A toolbar holding one control should not stretch the full page width - but
+   the control still needs the whole width it is given, or long event titles
+   are truncated inside the select. */
+.toolbar--single {
+    max-width: 34rem;
+    grid-template-columns: minmax(0, 1fr);
+}
 
 .toolbar__meta {
     margin-top: 1rem;

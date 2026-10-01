@@ -48,7 +48,15 @@ async function newPage(viewport = { width: 1280, height: 900 }) {
     const page = await context.newPage();
     page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(`${page.url()} :: ${m.text()}`); });
     page.on('pageerror', (e) => pageErrors.push(`${page.url()} :: ${e.message}`));
-    page.on('requestfailed', (r) => failedRequests.push(`${r.url()} :: ${r.failure()?.errorText}`));
+    page.on('requestfailed', (r) => {
+        /* ERR_ABORTED means the browser cancelled an in-flight request because
+         * the page navigated away - which these checks do constantly. It is a
+         * property of the harness, not of the site, so only genuine transport
+         * failures are collected. */
+        const reason = r.failure()?.errorText || '';
+        if (reason.includes('ERR_ABORTED')) { return; }
+        failedRequests.push(`${r.url()} :: ${reason}`);
+    });
     return page;
 }
 

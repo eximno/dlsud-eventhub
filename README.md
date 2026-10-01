@@ -9,7 +9,10 @@ examination.
 > **Not an official university system.** DLSUD EventHub is a student academic
 > project. It is not affiliated with, endorsed by, or connected to De La Salle
 > University–Dasmariñas. Every event and every student in the database is
-> sample data invented for the prototype.
+> sample data invented for the prototype. The university seal is used only to
+> identify the academic context of this coursework; it does not indicate
+> university endorsement, and it should be removed before the project is shown
+> anywhere outside the course.
 
 ---
 
@@ -450,8 +453,9 @@ with `axe-core` (0 violations) plus manual keyboard testing.
   `aria-current` as well as colour.
 - ARIA is used only where HTML has no equivalent — the table scroll areas are
   `<section tabindex="0">`, not `<div role="region">`.
-- Decorative elements (the seat bar, the logo mark, icons) are
-  `aria-hidden="true"` so they are not announced.
+- Decorative elements are not announced: the seat bar and the alert glyphs are
+  `aria-hidden="true"`, and the header logo is an `<img alt="">` beside the
+  wordmark that already names the site.
 - `prefers-reduced-motion` disables the shimmer and spinner animations.
 - Touch targets are at least 44 px tall.
 

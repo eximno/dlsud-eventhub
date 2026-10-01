@@ -141,7 +141,7 @@ not allowed to reach for.
 | Accessible forms | every control has a real `<label for>`; hints and errors wired with `aria-describedby`; `aria-invalid` on failure; `novalidate` so the app owns the messages |
 | Accessible labels | `frontend/js/app.js` → `buildForm()`; filter labels in `frontend/index.html` |
 | Colour contrast | all text ≥ 4.5:1; gold is used as a border/background accent, with `--gold-600` reserved for text on white (5.4:1) |
-| Alt text / decoration | informative text is real text; decorative elements (seat bar, logo mark, alert glyphs) are `aria-hidden="true"` |
+| Alt text / decoration | informative text is real text; the header logo is an `<img alt="">` next to the wordmark that already names the site, and the seat bar and alert glyphs are `aria-hidden="true"` |
 | Event catalog | `frontend/index.html` + `frontend/js/events.js` → `listEvents()`, `renderEventCard()` |
 | Event registration form | `frontend/event.html` + `frontend/js/app.js` → `buildForm()`, `wireForm()`, `submitRegistration()` |
 | Responsive UI | fluid grids, `clamp()` type, breakpoints at 960 px and 620 px; verified at 320/375/768 px with no horizontal overflow |
