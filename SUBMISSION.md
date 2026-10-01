@@ -140,9 +140,8 @@ site never calls them.
 **Team-recorded first attempt.** The team recorded that the assistant's first
 response, before the negative constraints were tightened, proposed a React SPA
 with an Express/ASP.NET API, PostgreSQL, JWT, Docker Compose and CI, and that
-it was rejected. *This is recorded from the team's memory of the session; the
-repository holds no transcript that can confirm it, so it is not used as an
-entry in the Verification Log.*
+it was rejected. *Recorded from the team's memory of the session; the repository holds no
+transcript that can confirm it (see Verification Log entry 8).*
 
 ### 2.4 Manual Grounding Evaluation
 
@@ -639,16 +638,25 @@ prompts are reconstructions, as stated at the top of this document.
 
 ### 6.4 Verification Log
 
-Each entry is traceable to commit `9f4c5fc` (the audit commit) and to the tool
-that caught it. *Member responsible* follows the roster's task ownership.
+Instances where AI-generated output was wrong, incomplete or over-built, and
+what was done about it. *How it was caught* names the tool or check. Entries
+1–6 and 9–10 are traceable to commit `9f4c5fc`; entries 7 and 8 are
+team-recorded design-review findings that predate the first commit and cannot
+be reproduced from git history. *Member responsible* follows the roster's task
+ownership.
 
-| Task # | Identified AI Flaw / Limitation | Manual Correction Applied | Caught by | Member Responsible |
-|---|---|---|---|---|
-| Task 2 | The "event not found" state was rendered with an `<h3>`, so the page had **no level-one heading** (WCAG heading structure). | Added a heading-level parameter to the state renderer and used `h1` where the state is the page's main content. | axe-core 4.10 (`page-has-heading-one`) | Justin Basilides |
-| Task 2 | The filter form had **no submit button** (WCAG technique H32), and a fast double-click on the register button navigated the student away from their own confirmation. | Added a real `type="submit"` Search button; added a 500 ms pointer shield on panel swaps plus a regression check. | html-validate (`wcag/h32`); a triple-click end-to-end check | Justin Basilides |
-| Task 3 | `CHECK (event_date = strftime(...))` silently **accepted invalid dates** because `x = NULL` is NULL and SQLite treats a NULL CHECK as passing. | Changed `=` to `IS`, with a comment; `'12/01/2026'`, `'2026-13-01T09:00'`, values with seconds and `''` are now rejected. | Negative-insert script against the committed SQL | Aian Cuento |
-| Task 4 | Generated repository built `CommandText` by **concatenating** a predicate string, so the constant-SQL guarantee did not literally hold. | Replaced with two complete constant, parameterised statements. | Security review of every `CommandText` | Calvin Bellen |
-| Task 4 | The JavaScript and C# **name rules diverged** (Latin-1 range vs `\p{L}`); the same name could pass one layer and fail the other. | Aligned the JavaScript to `\p{L}` and documented the mirroring in both files. | Line-by-line comparison while writing the second test suite | Calvin Bellen |
+| # | Task | AI flaw / limitation | Manual correction | How it was caught | Member responsible |
+|---|---|---|---|---|---|
+| 1 | 3 | The generated schema wrote `CHECK (event_date = strftime('%Y-%m-%dT%H:%M', event_date))`. For an unparseable value `strftime()` returns `NULL`, `'x' = NULL` evaluates to `NULL`, and SQLite treats a `NULL` `CHECK` as **satisfied** — so `'12/01/2026'` was accepted into the database. | Changed `=` to the `IS` operator, which compares against `NULL` correctly, and added a comment explaining why. `'12/01/2026'`, `'2026-12-01'`, `'2026-13-01T09:00'`, a value with seconds, and `''` are now all rejected. | A negative-constraint test script run against the committed SQL: 15 of 16 bad inserts were rejected and this one was not. | Aian Cuento |
+| 2 | 2 | The generated registration flow replaced the form with a confirmation panel the instant the insert succeeded. A fast double-click therefore landed its second click on the "Browse more events" link that had appeared where the submit button was, and the student was navigated to the catalog **away from their own reference number**. The data was correct — exactly one registration — but the user lost the confirmation. | Added a 500 ms pointer shield (`.panel--settling`) applied whenever the panel swaps its contents, so links and buttons inside it ignore pointer input briefly; keyboard users are unaffected because focus is moved to the panel. Added a regression check asserting that rapid repeat clicks neither duplicate the registration nor change the URL. | An end-to-end check that triple-clicks the submit button and then asserts the registration count; it aborted because the page had navigated. | Justin Basilides |
+| 3 | 2 | The generated "event not found" page rendered its message with an `<h3>` inside the main article, leaving that page with **no level-one heading** — a WCAG heading-structure failure on the one page a mistyped link lands on. | Gave the state renderer an explicit heading-level parameter and passed `h1` where the state is the page's main content (and `h2` for the admin failure state, which sits under the page `h1`). | `axe-core` 4.10 run over every page and every state: 1 violation, `page-has-heading-one`. | Justin Basilides |
+| 4 | 2 | The generated admin markup used `<div role="region" aria-labelledby="…" tabindex="0">` for the horizontally scrollable tables — ARIA standing in for an element HTML already has. | Replaced both with `<section aria-labelledby="…" tabindex="0">`, which carries the same role natively. | `html-validate` (`prefer-native-element`). | Justin Basilides |
+| 5 | 2 | The generated filter form had no submit button at all, because filtering happens on `input`. That fails WCAG technique H32 and leaves anyone who expects to press a button with nothing to press. | Added a real `type="submit"` **Search** button next to **Clear filters**, kept the live filtering, and kept the `submit` handler that already prevented a page reload on Enter. | `html-validate` (`wcag/h32`). | Justin Basilides |
+| 6 | 4 | The generated JavaScript name rule used the Latin-1 range `[A-Za-zÀ-ÿÑñ.'\- ]` while the generated C# rule used `[\p{L}.'\- ]`. The **same name could pass one layer and fail the other**, which is exactly the kind of silent divergence the three-layer design is supposed to avoid. | Aligned the JavaScript to `/^[\p{L}.'\- ]+$/u` so both implementations apply one rule, and noted the mirroring requirement in both files. | Line-by-line comparison of the JavaScript rules against the C# rules while writing the second test suite. | Calvin Bellen |
+| 7 | 4 | The first C# repository design checked capacity in application code and then inserted unconditionally. Two concurrent requests for the last seat would both pass the check and both insert, over-subscribing the event. | The insert now re-counts confirmed seats in its own `WHERE` clause, so the database enforces capacity; zero rows inserted is reported as "the last seat was taken while you were registering". A test drives that null-return path. | Design review of the write path: asking "what happens if two of these run at once?" | Calvin Bellen |
+| 8 | 1 / 2 | The first architecture proposal was a React SPA with an Express/ASP.NET REST API, PostgreSQL, JWT auth, Docker Compose and a CI pipeline — none of which can run on GitHub Pages, and none of which is finishable in a 3-hour laboratory slot. | Rejected it, tightened the prompt with explicit negative constraints, and implemented static HTML/CSS/JS + SQLite via sql.js. The repository has zero runtime dependencies beyond the two vendored sql.js files. | Checking the proposal against the hard requirement that the site be reachable on GitHub Pages. | Timothy Delmoro |
+| 9 | 2 | A generated CSS custom property was written as `--line-200: #e8ece a;` — an invalid value with a stray space, which silently produced no colour wherever the token was used. | Corrected the value and removed the defensive fallback that had been masking it. | Reading the generated stylesheet rather than trusting it, after a brace-balance check passed. | Justin Basilides |
+| 10 | 2 | Generated JavaScript left dead code behind: an unused object built in the blur handler, and five `catch (error)` blocks whose binding was never read. | Removed the dead object and converted the deliberately-ignored catches to ES2019 optional catch binding, so the intent ("this failure is expected and ignorable") is visible rather than implied. | ESLint 9 (`no-unused-vars`). | Justin Basilides |
 
 **Not entered as flaws (checked against the repository and found not to have
 happened):** missing `aria-label`/labels on required inputs (labels were in the
