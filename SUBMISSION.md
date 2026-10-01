@@ -1,41 +1,62 @@
-# DLSUD EventHub — Examination Submission
+# DLSUD EventHub
 
-**Project:** DLSUD EventHub — campus event registration prototype
+## Group Laboratory Examination Submission
+
 **Course:** 4th-year BSIT group laboratory examination
-**Group members:** Basilides, Bellen, Cuento, Delmoro
 **Repository:** <https://github.com/eximno/dlsud-eventhub>
 **Live site:** GitHub Pages → Settings → Pages → *Deploy from a branch*, `main`, `/ (root)`
 
-> **Before submitting:** assign each role placeholder in the
-> [Verification log](#verification-log) to the group member who actually did
-> that work (Basilides, Bellen, Cuento, Delmoro), and
-> run `dotnet test tests/DlsudEventHub.Tests.csproj` on a machine with the
-> .NET 8 SDK (see [What was and was not executed](#what-was-and-was-not-executed)).
+> **How to read the prompts in this document.** The repository contains the
+> Task 1 prompt (recorded below, verbatim) but **no separate master-prompt
+> file**, and no chat transcripts. The Task 2, 3 and 4 prompts are therefore
+> *task-specific prompts reconstructed for examination documentation* from the
+> Task 1 prompt's requirements and constraints and from the examination brief.
+> They are not transcripts of five independent AI conversations. Every
+> "AI-Generated Output" section describes the **artefact that is actually in
+> this repository**, and every correction cited in the Verification Log is
+> traceable to a commit (`9f4c5fc`) or to a test/lint run named in §6.5.
 
 ---
 
 ## Contents
 
-- [Task 1 — Requirements and prompt engineering](#task-1--requirements-and-prompt-engineering)
-- [Task 2 — Frontend](#task-2--frontend)
-- [Task 3 — Database and ERD](#task-3--database-and-erd)
-- [Task 4A — Unit testing](#task-4a--unit-testing)
-- [Task 4B — Security refactor](#task-4b--security-refactor)
-- [Security audit](#security-audit)
-- [Verification log](#verification-log)
-- [What was and was not executed](#what-was-and-was-not-executed)
-- [AI usage disclosure](#ai-usage-disclosure)
-- [Definition of done](#definition-of-done)
+1. [Team Roster](#1-team-roster)
+2. [Task 1 — Requirements Analysis & Prompt Architecture](#2-task-1--requirements-analysis--prompt-architecture)
+3. [Task 2 — AI-Assisted Frontend Development](#3-task-2--ai-assisted-frontend-development)
+4. [Task 3 — Database Design & ERD Generation](#4-task-3--database-design--erd-generation)
+5. [Task 4 — Shift-Left Testing, Security & Refactoring](#5-task-4--shift-left-testing-security--refactoring)
+6. [Task 5 — Group Integration & Verification Report](#6-task-5--group-integration--verification-report)
 
 ---
 
-## Task 1 — Requirements and prompt engineering
+## 1. Team Roster
 
-### 1.1 The RCTC prompt used
+| Member | Role | Primary Responsibility |
+|---|---|---|
+| Timothy Delmoro | Systems Architect & Prompt Lead | Task 1 + Task 5 |
+| Justin Basilides | Frontend Engineer | Task 2 |
+| Aian Cuento | Database & Backend Engineer | Task 3 |
+| Calvin Bellen | QA & Security Engineer | Task 4 |
 
-The prompt below is the one given to the AI assistant (Claude) to produce the
-initial architecture. It follows **R**ole, **C**ontext, **T**ask,
-**C**onstraints, and its constraints include explicit negative constraints.
+---
+
+## 2. Task 1 — Requirements Analysis & Prompt Architecture
+
+*Owner: Timothy Delmoro*
+
+### 2.1 Objective
+
+Turn the examination brief into a defensible architecture for a 3-hour
+prototype: a campus event registration system for De La Salle
+University–Dasmariñas that must be publicly reachable on GitHub Pages
+(static hosting, no server process, no server-side database).
+
+### 2.2 Prompt Used
+
+This is the Task 1 prompt as recorded by the team. It uses the RCTC structure
+— **R**ole, **C**ontext, **T**ask, **C**onstraints — and carries two explicit
+negative constraints (React/Express/PostgreSQL/etc. and "no invented
+features").
 
 ```text
 ROLE
@@ -90,16 +111,14 @@ CONSTRAINTS
 - NEGATIVE CONSTRAINT: do not invent features that were not asked for.
 ```
 
-### 1.2 Architecture output (summarised)
+### 2.3 AI-Generated Output
 
-The assistant's **first** response — before the negative constraints were
-tightened — proposed a three-tier system: a React single-page app, an
-Express/ASP.NET Core REST API, PostgreSQL, JWT authentication, Docker Compose
-for local development and a GitHub Actions pipeline. It was rejected: none of
-it can run on GitHub Pages, and it is not finishable or defensible in three
-hours.
+**Prompt requested:** the simplest architecture, with one-sentence
+justification per component, and a clear statement of what runs on GitHub
+Pages.
 
-The accepted architecture, after the prompt was tightened:
+**AI output accepted by the team** (this is the architecture the repository
+implements):
 
 | Component | Decision | One-sentence justification |
 |---|---|---|
@@ -113,27 +132,86 @@ The accepted architecture, after the prompt was tightened:
 | Tests | xUnit + Moq for C#; `node:test` for JavaScript | The repository depends on nothing at runtime, and both implementations of the same rules are pinned by tests. |
 | Hosting | GitHub Pages from the repository root | Relative paths only; `../database/*.sql` resolves when the root is the site root. |
 
-### 1.3 Manual grounding evaluation
+**What does not run on GitHub Pages:** `backend/RegistrationService.cs` and
+its xUnit tests. They are a separate examination exercise (see Task 4), and the
+site never calls them.
 
-The assistant's first architecture was technically coherent but completely
-ungrounded in the examination's actual constraints: it assumed a server we
-cannot deploy, a database we cannot host and a build pipeline we have no time
-to configure, and it would have failed the single hard requirement that the
-site be reachable on GitHub Pages. Tightening the prompt with explicit
-negative constraints produced a usable proposal, but it still needed manual
-correction — the assistant initially wanted to duplicate the schema as
-JavaScript object literals "for convenience", which would have created two
-sources of truth and guaranteed that the committed SQL and the running
-prototype would drift apart. We rejected that and made the browser fetch and
-execute `schema.sql` and `seed.sql` directly, which is both simpler and the
-reason the ERD in this document can be trusted. The general lesson we took
-from Task 1 is that an AI will happily optimise for an impressive-sounding
-stack unless the prompt states, as a negative constraint, exactly what it is
-not allowed to reach for.
+**Team-recorded first attempt.** The team recorded that the assistant's first
+response, before the negative constraints were tightened, proposed a React SPA
+with an Express/ASP.NET API, PostgreSQL, JWT, Docker Compose and CI, and that
+it was rejected. *This is recorded from the team's memory of the session; the
+repository holds no transcript that can confirm it, so it is not used as an
+entry in the Verification Log.*
+
+### 2.4 Manual Grounding Evaluation
+
+The accepted architecture is realistic for a 3-hour examination: it needs no
+installation, no build step and no accounts, and every component is a plain
+file that can be opened and explained in a five-minute oral defence. The one
+real risk — keeping a JavaScript copy of the schema alongside the SQL — was
+removed by having the browser fetch and execute `database/schema.sql` and
+`database/seed.sql` directly, so the SQL the examiners read is the SQL the site
+runs. The cost is a known limitation: the database lives in each visitor's
+browser, so it is a prototype, not a system of record, and the README says so.
+
+### 2.5 Final Decision / Refinement
+
+| | |
+|---|---|
+| **Prompt requested** | A lightweight architecture suitable for a 3-hour prototype. |
+| **AI output** | A browser-based static architecture: HTML/CSS/vanilla JS with SQLite executed in the browser through sql.js. |
+| **Team refinement** | Retained it; kept C# as a standalone, honestly-labelled exercise instead of pretending it backs the site; made the SQL files the single source of truth. |
 
 ---
 
-## Task 2 — Frontend
+## 3. Task 2 — AI-Assisted Frontend Development
+
+*Owner: Justin Basilides*
+
+### 3.1 Objective
+
+A responsive, WCAG-conscious event catalog, event detail page and registration
+form that runs as a static site.
+
+### 3.2 Prompt Used
+
+*Reconstructed task-specific prompt (see the note at the top of this
+document); it carries the frontend requirements of the Task 1 prompt and
+excludes database and C# requirements.*
+
+```text
+ROLE
+You are a senior front-end engineer who specialises in accessible, framework-free web interfaces.
+
+CONTEXT
+DLSUD EventHub is a campus event registration prototype for De La Salle
+University-Dasmarinas, built in a 3-hour examination and hosted on GitHub
+Pages. Students must be able to find an event and register for it.
+
+TASK
+Build the front end: an event catalog with search and filters, an event detail
+page, and a registration form (full name, student number, DLSU-D student
+e-mail, department). Show remaining seats, and show validation feedback for
+every field.
+
+CONSTRAINTS
+- Semantic HTML5 landmarks and heading structure.
+- Responsive layout from 320 px upward.
+- WCAG 2.1 AA: every form control has a programmatically associated label;
+  ARIA only where HTML has no equivalent; accessible colour contrast; alt text
+  for any informative image; visible validation feedback linked to its field;
+  everything usable by keyboard alone.
+- Vanilla HTML, CSS and JavaScript. Relative paths only (GitHub Pages).
+- NEGATIVE CONSTRAINT: no framework, no CSS framework, no bundler, no CDN.
+- NEGATIVE CONSTRAINT: do not rely on colour alone to convey seat status or errors.
+```
+
+### 3.3 AI-Generated Output
+
+The generated front end is `frontend/index.html` (catalog), `frontend/event.html`
+(detail + registration), `frontend/admin.html`, `frontend/css/styles.css` and
+`frontend/js/{app,events,database,validation,registration}.js`, with a root
+`index.html` that forwards to `frontend/`. How each requirement is met:
 
 | Requirement | Where it is satisfied |
 |---|---|
@@ -147,7 +225,7 @@ not allowed to reach for.
 | Responsive UI | fluid grids, `clamp()` type, breakpoints at 960 px and 620 px; verified at 320/375/768 px with no horizontal overflow |
 | Works as a static site | relative paths only; no API calls; runs from `python3 -m http.server` or GitHub Pages |
 
-### Interaction states that were deliberately designed, not left to chance
+Behaviour designed into the flow (all exercised by `tests/browser-checks.mjs`):
 
 | The user does this | What happens |
 |---|---|
@@ -172,11 +250,149 @@ not allowed to reach for.
 | Has `localStorage` blocked or full | the prototype keeps working in memory and says so in a warning — it does not fail the action |
 | Loses `database/schema.sql` (404) | a readable "could not start" message explaining that the site must be served over http, not opened from the file system |
 
+### 3.4 Manual Corrections / Refinements
+
+Defects found by auditing the generated front end (commit `9f4c5fc`):
+
+| Generated behaviour | Correction |
+|---|---|
+| The "event not found" page rendered its message as an `<h3>`, leaving the page with no `h1` (flagged by axe-core as `page-has-heading-one`). | The state renderer takes a heading-level parameter; `h1` is passed where the state is the page's main content. |
+| Scrollable tables used `<div role="region" tabindex="0">` (flagged by html-validate `prefer-native-element`). | Replaced with `<section aria-labelledby tabindex="0">`, which has the same role natively. |
+| The filter form had no submit button because filtering runs on `input` (flagged by html-validate `wcag/h32`). | Added a real `type="submit"` **Search** button; live filtering and the Enter-key handler were kept. |
+| A fast double-click on "Reserve my seat" landed the second click on the "Browse more events" link that replaced the button, so the student left their own confirmation. | Added a 500 ms pointer shield (`.panel--settling`) when a panel swaps contents; regression check added. |
+| A CSS custom property was written `--line-200: #e8ece a;` (stray space), producing no colour. | Value corrected; the fallback that had masked it was removed. |
+| Dead code and unused `catch (error)` bindings (ESLint `no-unused-vars`). | Removed; ignored catches use optional catch binding. |
+
+### 3.5 Accessibility Verification
+
+Verified in the repository:
+
+- **Labels:** every field is built in `buildForm()` (`frontend/js/app.js`) with
+  a `<label>` whose `htmlFor` matches the control id; hints and error
+  containers are linked through `aria-describedby`; failures set
+  `aria-invalid`; the form uses `novalidate` so the app owns the messages;
+  inputs carry `autocomplete`, `maxlength`, and `inputmode` where relevant.
+  Filter controls in `frontend/index.html` use `<label for>` too.
+- **ARIA that exists:** `aria-label` on both `nav` elements and the
+  registration `aside`, `aria-labelledby` on sections, `aria-live`/`role="status"`
+  for results and field errors, `role="alert"` for the error summary,
+  `aria-busy` on loading regions, `aria-current` for the current page,
+  `aria-hidden` on decorative elements.
+- **Keyboard:** skip link first, `:focus-visible` ring on all interactive
+  elements (`styles.css`), focus moved to the first invalid field and to the
+  confirmation panel.
+- **Contrast / motion / touch:** gold text uses `--gold-600` (5.4:1 on white);
+  `prefers-reduced-motion` is honoured; controls have a 44 px minimum height.
+- **Images:** the project contains **no `<img>` elements**, so there is no
+  informative image needing alt text; decorative marks are `aria-hidden`.
+- **Tooling run during the build:** html-validate (clean), axe-core 4.10 on six
+  page states at 1280 px and 320 px (0 violations after the `h1` fix), and 91
+  Playwright checks including keyboard focus order.
+- **Not done:** a manual screen-reader pass (NVDA/VoiceOver). See §6.5.
+
 ---
 
-## Task 3 — Database and ERD
+## 4. Task 3 — Database Design & ERD Generation
 
-### 3.1 ERD (generated from the final `database/schema.sql`)
+*Owner: Aian Cuento*
+
+### 4.1 Objective
+
+A relational schema in at least 3NF, executable in SQLite, with an ERD that
+matches it exactly.
+
+### 4.2 Prompt Used
+
+*Reconstructed task-specific prompt (see the note at the top of this
+document).*
+
+```text
+ROLE
+You are a database engineer experienced with SQLite and relational modelling.
+
+CONTEXT
+DLSUD EventHub lets DLSU-D students register for campus events. Students
+belong to a department, events have a capacity, and a student may attend many
+events. The same SQL must run in the browser (sql.js) and in a standalone
+SQLite client.
+
+TASK
+Design the database and produce (1) SQLite-compatible DDL and (2) a Mermaid
+ERD that matches it.
+
+CONSTRAINTS
+- At least 3NF, with at least 3 entities; justify the normal form.
+- Primary keys on every table; foreign keys with explicit ON UPDATE/ON DELETE.
+- CHECK constraints for the DLSU-D e-mail rule, capacity, dates, categories
+  and status; UNIQUE constraints where justified (including one registration
+  per student per event).
+- An index on every foreign-key column.
+- The ERD must list the same tables, columns and relationships as the SQL.
+- NEGATIVE CONSTRAINT: do not store derived values (remaining seats,
+  registered counts).
+- NEGATIVE CONSTRAINT: no MySQL/PostgreSQL-only syntax.
+```
+
+### 4.3 AI-Generated Output
+
+The generated artefacts are `database/schema.sql` (four tables, one view, six
+indexes) and `database/seed.sql` (9 events, 8 departments, 112 sample students,
+115 registrations, deliberately including a full event, a 39/40 event, an
+empty event, a past event and a cancelled registration). The schema header
+comment records the 3NF reasoning; the ERD is in §4.6.
+
+### 4.4 Manual Corrections / Refinements
+
+| Generated behaviour | Correction |
+|---|---|
+| `CHECK (event_date = strftime('%Y-%m-%dT%H:%M', event_date))`. For an unparseable value `strftime()` returns `NULL`, `x = NULL` is `NULL`, and SQLite treats a `NULL` CHECK as satisfied, so `'12/01/2026'` was **accepted**. | Changed `=` to `IS` (`schema.sql`, `events.event_date`) with an explanatory comment. Caught by a negative-insert script run against the committed SQL. |
+| **Foreign-key indexes.** | **Not a defect in this project.** The three FK indexes were already in the first committed `schema.sql` (commit `373277a`), so no "AI omitted FK indexes" correction is claimed. |
+
+### 4.5 Final 3NF Schema
+
+The authoritative source is [`database/schema.sql`](database/schema.sql); it
+is not duplicated here to avoid a second copy that could drift.
+
+| Form | Why it holds |
+|---|---|
+| **1NF** | Every column holds one atomic value. There is no "events attended" list on a student and no comma-separated attendee column on an event; attendance is one row per student per event in `registrations`. |
+| **2NF** | The only composite candidate key is `registrations (user_id, event_id)`, and the remaining attributes (`registered_at`, `status`) depend on that whole key — they describe *this student's attendance of this event*, not the student alone or the event alone. |
+| **3NF** | No non-key column determines another non-key column. The college name is the case that would break this: storing `department` as text on `users` would make the name depend on the department rather than on the user, so it was extracted into `departments` and referenced by id. Seat counts are the other case: `registered_count` and `remaining_seats` are derivable from `registrations` and `capacity`, so they are **not stored** — they come from the `event_availability` view. Nothing can drift out of sync because nothing is duplicated. |
+
+**Constraint and index inventory** (all verified present in `schema.sql`;
+running the schema and seed in SQLite creates the six `idx_*` indexes and
+`PRAGMA foreign_key_check` returns no rows):
+
+| Kind | Where |
+|---|---|
+| Primary keys | all four tables (`INTEGER PRIMARY KEY AUTOINCREMENT`) |
+| Foreign keys | `users.department_id` → `departments`; `registrations.user_id` → `users`; `registrations.event_id` → `events`; all with explicit `ON UPDATE` / `ON DELETE` behaviour |
+| `NOT NULL` | every column in every table — verified with `PRAGMA table_info`, there are no nullable non-key columns |
+| `UNIQUE` | `departments.code`, `departments.name`, `users.student_id`, `users.email`, `events (title, event_date)`, **`registrations (user_id, event_id)`** |
+| `CHECK` | upper-case department codes; numeric 6–12-digit student numbers; name/title/description/location lengths; the full `@dlsud.edu.ph` e-mail rule; `capacity BETWEEN 1 AND 5000`; strict `YYYY-MM-DDTHH:MM` dates; `category` in a fixed list; `status` in `('confirmed','cancelled')` |
+| Indexes on FK columns | `idx_users_department_id`, `idx_registrations_user_id`, `idx_registrations_event_id` |
+| Indexes for frequent queries | `idx_registrations_event_status` (seat counting), `idx_events_event_date` (catalog order), `idx_events_category` (catalog filter) |
+
+`PRAGMA foreign_keys = ON` is issued per connection in `schema.sql`, in
+`database.js` (browser) and in `SqliteRegistrationRepository.OpenConnection()`
+(C#), because SQLite leaves foreign keys off by default.
+
+**Negative inserts rejected by the constraints** (script run against the
+committed SQL with Python's `sqlite3`):
+
+`@gmail.com` · `@dlsu.edu.ph` · `@dlsud.edu` · `@dlsud.edu.ph.fake.com` ·
+`a@b@dlsud.edu.ph` · `@dlsud.edu.ph` (empty local part) · upper-case e-mail ·
+non-numeric student number · unknown `department_id` · duplicate
+`(user_id, event_id)` · `capacity = -5` · `capacity = 0` ·
+`event_date = '12/01/2026'` · `event_date = '2026-13-01T09:00'` ·
+`category = 'Party'` · `status = 'maybe'` · registration for a non-existent user.
+
+### 4.6 Mermaid ERD
+
+Written from the final `database/schema.sql` and checked table-by-table,
+column-by-column and key-by-key against it (tables, column names, PK/FK/UK
+markers, `ON DELETE` behaviour, and cardinality: one department to many users;
+one user to many registrations; one event to many registrations).
 
 ```mermaid
 erDiagram
@@ -232,64 +448,98 @@ erDiagram
     }
 ```
 
-The ERD above was written from the finished schema and then checked
-attribute-by-attribute against `database/schema.sql`. If you change the
-schema, change this diagram in the same commit.
-
-### 3.2 Why this is in third normal form
-
-| Form | Why it holds |
-|---|---|
-| **1NF** | Every column holds one atomic value. There is no "events attended" list on a student and no comma-separated attendee column on an event; attendance is one row per student per event in `registrations`. |
-| **2NF** | The only composite candidate key is `registrations (user_id, event_id)`, and the remaining attributes (`registered_at`, `status`) depend on that whole key — they describe *this student's attendance of this event*, not the student alone or the event alone. |
-| **3NF** | No non-key column determines another non-key column. The college name is the case that would break this: storing `department` as text on `users` would make the name depend on the department rather than on the user, so it was extracted into `departments` and referenced by id. Seat counts are the other case: `registered_count` and `remaining_seats` are derivable from `registrations` and `capacity`, so they are **not stored** — they come from the `event_availability` view. Nothing can drift out of sync because nothing is duplicated. |
-
-### 3.3 Constraint and index inventory
-
-| Kind | Where |
-|---|---|
-| Primary keys | all four tables (`INTEGER PRIMARY KEY AUTOINCREMENT`) |
-| Foreign keys | `users.department_id` → `departments`; `registrations.user_id` → `users`; `registrations.event_id` → `events`; all with explicit `ON UPDATE` / `ON DELETE` behaviour |
-| `NOT NULL` | every column in every table — verified with `PRAGMA table_info`, there are no nullable non-key columns |
-| `UNIQUE` | `departments.code`, `departments.name`, `users.student_id`, `users.email`, `events (title, event_date)`, **`registrations (user_id, event_id)`** |
-| `CHECK` | upper-case department codes; numeric 6–12-digit student numbers; name/title/description/location lengths; the full `@dlsud.edu.ph` e-mail rule; `capacity BETWEEN 1 AND 5000`; strict `YYYY-MM-DDTHH:MM` dates; `category` in a fixed list; `status` in `('confirmed','cancelled')` |
-| Indexes on FK columns | `idx_users_department_id`, `idx_registrations_user_id`, `idx_registrations_event_id` |
-| Indexes for frequent queries | `idx_registrations_event_status` (seat counting), `idx_events_event_date` (catalog order), `idx_events_category` (catalog filter) |
-
-`PRAGMA foreign_keys = ON` is issued on every connection — in `database.js`
-for the browser and in `SqliteRegistrationRepository.OpenConnection()` for the
-C# — because SQLite leaves foreign keys **off** by default and the constraints
-would otherwise be decorative.
-
-### 3.4 Evidence the constraints actually reject bad data
-
-Run against the committed SQL with Python's bundled SQLite. Every one of these
-was rejected, and a valid insert was accepted:
-
-`@gmail.com` · `@dlsu.edu.ph` · `@dlsud.edu` · `@dlsud.edu.ph.fake.com` ·
-`a@b@dlsud.edu.ph` · `@dlsud.edu.ph` (empty local part) · upper-case e-mail ·
-non-numeric student number · unknown `department_id` · duplicate
-`(user_id, event_id)` · `capacity = -5` · `capacity = 0` ·
-`event_date = '12/01/2026'` · `event_date = '2026-13-01T09:00'` ·
-`category = 'Party'` · `status = 'maybe'` · registration for a non-existent user.
-
 ---
 
-## Task 4A — Unit testing
+## 5. Task 4 — Shift-Left Testing, Security & Refactoring
 
-Two suites, because the rules exist in two languages and both need pinning.
+*Owner: Calvin Bellen*
 
-### `tests/RegistrationServiceTests.cs` — xUnit + Moq
+### 5.1 Objective
 
-```bash
-dotnet test tests/DlsudEventHub.Tests.csproj
+Unit-test the registration business rules, then review and refactor a
+deliberately flawed C# data-access method for security and resource safety.
+
+### 5.2 Prompt Used
+
+*Reconstructed task-specific prompt (see the note at the top of this
+document).*
+
+```text
+ROLE
+You are a QA and application-security engineer reviewing C# data-access code.
+
+CONTEXT
+DLSUD EventHub registers students for events. The following legacy method
+is deliberately flawed:
+
+    public bool RegisterStudent(string email, string eventId)
+    {
+        SqlConnection conn = new SqlConnection("Server=.;Database=EventHub;User Id=sa;Password=P@ssw0rd123;");
+        conn.Open();
+        string sql = "INSERT INTO Registrations (Email, EventId) VALUES ('" + email + "', " + eventId + ")";
+        SqlCommand cmd = new SqlCommand(sql, conn);
+        int rows = cmd.ExecuteNonQuery();
+        string name = cmd.ExecuteScalar().ToString();
+        return rows > 0;
+    }
+
+TASK
+(1) Write xUnit tests for: DLSU-D e-mail validation, an invalid e-mail,
+available seats, a full event, and duplicate registration.
+(2) Review the method for SQL injection, string-concatenated SQL, resource
+disposal, null handling and hard-coded credentials, and explain each finding.
+(3) Refactor it.
+
+CONSTRAINTS
+- Parameterised queries with safe parameter binding.
+- using / using var for every connection, command, reader and transaction.
+- Safe handling of null and DBNull results.
+- No real credentials; the connection string comes from configuration.
+- Tests assert requirements (behaviour), not implementation details.
+- NEGATIVE CONSTRAINT: do not concatenate user input into SQL anywhere.
+- NEGATIVE CONSTRAINT: do not weaken or skip a test to make it pass.
 ```
 
-`RegistrationService` depends on `IRegistrationRepository`, not on SQLite, so
-the repository is replaced with a `Mock<IRegistrationRepository>` using
-`MockBehavior.Strict`. That choice is itself an assertion: any unexpected
-database call fails the test, which is how "invalid input never reaches the
-database" is proved rather than assumed.
+### 5.3 AI-Generated Output
+
+The output is `backend/RegistrationService.cs` (business rules, a mockable
+`IRegistrationRepository`, `RegistrationService`, and
+`SqliteRegistrationRepository`) and `tests/RegistrationServiceTests.cs`. The
+original flawed method is preserved in a comment at the top of
+`RegistrationService.cs` as the "before".
+
+### 5.4 Security Findings
+
+Findings against the original method, each present in the preserved code:
+
+| # | Finding | Evidence in the original |
+|---|---|---|
+| 1 | **SQL injection / string-concatenated SQL** | `"... VALUES ('" + email + "', " + eventId + ")"` |
+| 2 | **Hard-coded credentials** | `User Id=sa;Password=P@ssw0rd123;` in source |
+| 3 | **Connection not disposed** | `new SqlConnection(...)`, never closed; leaks on exception |
+| 4 | **Command not disposed** | `new SqlCommand(...)`, never disposed |
+| 5 | **Null dereference** | `cmd.ExecuteScalar().ToString()` throws when the result is null |
+| 6 | **No business rules** | no capacity, duplicate or e-mail check |
+
+### 5.5 Refactored Solution
+
+`backend/RegistrationService.cs`:
+
+| Finding | Fix in the final file |
+|---|---|
+| 1 | Every statement uses bound parameters (`$eventId`, `$email`, …) through `command.Parameters.AddWithValue`. Each `CommandText` is a constant literal. |
+| 2 | `SqliteRegistrationRepository(string connectionString)` receives the connection string from the caller and throws if it is null/blank. The file contains no credentials. |
+| 3–4 | `using SqliteConnection`, `using SqliteCommand`, `using SqliteDataReader` and `using SqliteTransaction` in every method. |
+| 5 | `ExecuteScalar()` results are checked for `null` and `DBNull.Value`; `reader.Read()` returning false returns `null`; `reader.IsDBNull(i)` guards column reads; an unparseable stored date is handled explicitly. |
+| 6 | `RegistrationRules.Decide` runs before any write; the insert is `INSERT … SELECT … WHERE (SELECT COUNT(*) …) < (SELECT capacity …)`, so capacity is enforced by the database, and `UNIQUE (user_id, event_id)` blocks duplicates. Writes run in a transaction with an explicit `Rollback()` on the "nothing inserted" path. |
+
+### 5.6 Unit Test Verification
+
+`tests/RegistrationServiceTests.cs` — xUnit + Moq, the repository mocked with
+`MockBehavior.Strict` so that any unexpected database call fails the test
+(this is how "invalid input never reaches the database" is asserted).
+Counted from the file: **22 `[Fact]` tests and 6 `[Theory]` tests with 44
+`[InlineData]` cases.**
 
 | Requirement under test | Tests |
 |---|---|
@@ -307,67 +557,126 @@ database" is proved rather than assumed.
 | Normalisation | a padded, mixed-case e-mail, a hyphenated student number and a double-spaced name reach the repository in canonical form |
 | Guard clause | a null repository throws `ArgumentNullException` at construction |
 
-**Suite size:** 22 `[Fact]` tests and 6 `[Theory]` tests carrying 44
-`[InlineData]` cases — 66 executable cases in total.
+`tests/validation.test.mjs` pins the same e-mail, seat and duplicate rules
+against the JavaScript the website runs.
 
-### `tests/validation.test.mjs` — `node:test`, zero dependencies
+> **Execution status — be precise.**
+> `node --test "tests/**/*.test.mjs"` was run and gives **31 tests, 31
+> passed** (re-run while preparing this document).
+> `dotnet test tests/DlsudEventHub.Tests.csproj` has **not** been executed: the
+> build environment has no .NET SDK. The C# tests were reviewed by hand and
+> are **not** claimed to have passed. Run the command on a machine with the
+> .NET 8 SDK and record the result before submitting.
 
-```bash
-node --test "tests/**/*.test.mjs"
-```
+### 5.7 Manual Corrections / Refinements
 
-**Result: 31 tests, 31 passed.** These cover the same e-mail, seat and
-duplicate rules against the JavaScript the website actually runs, plus the
-rules that only exist on the client: search-term clamping, query-string event
-ids, department allow-listing, and the guarantee that every refusal carries a
-message a student can act on.
-
-### What these tests deliberately do not do
-
-- They do not assert on private helpers or on the order of DOM nodes; they
-  assert on requirements, so a refactor that keeps the behaviour keeps the
-  tests green.
-- They do not mock the thing under test. The seat and e-mail rules are pure
-  functions, called directly.
-- No test was weakened, skipped or deleted to get a green run. Where a test
-  failed, the implementation was fixed — see entries 1, 2 and 3 of the
-  verification log.
+| Generated behaviour | Correction |
+|---|---|
+| `FindStudentByEmail`/`FindStudentByStudentId` shared a helper that built `CommandText` as `"SELECT … WHERE " + predicate + " LIMIT 1;"`. The predicate was a class-chosen constant, not user input, so it was not exploitable, but `CommandText` was no longer a literal and "no SQL is concatenated" was not literally true. | Replaced with two complete constant statements, each with its own bound parameter (commit `9f4c5fc`). |
+| The JavaScript name rule used the Latin-1 range `[A-Za-zÀ-ÿÑñ.'\- ]` while the C# rule used `[\p{L}.'\- ]`, so one name could pass one layer and fail the other. | JavaScript aligned to `/^[\p{L}.'\- ]+$/u`; a mirroring note added to both files. |
+| **Resource disposal.** | **Not a defect in this project.** `using` declarations were already in the first committed `RegistrationService.cs` (commit `373277a`), so no "AI did not dispose resources" correction is claimed. |
 
 ---
 
-## Task 4B — Security refactor
+## 6. Task 5 — Group Integration & Verification Report
 
-`backend/RegistrationService.cs`. The flawed original is kept verbatim in a
-comment at the top of that file so the before/after can be read side by side.
+*Owner: Timothy Delmoro, with contributions from all members.*
 
-### The original method's defects, and the fix for each
+### 6.1 Integration Summary
 
-| # | Defect in the original | Fix |
+| Deliverable | Location | Owner |
 |---|---|---|
-| 1 | **SQL injection** — `"... VALUES ('" + email + "', " + eventId + ")"` | Every statement uses bound parameters (`$eventId`, `$email`, …). No user value is concatenated into SQL anywhere in the file. The only non-parameter text that varies is a fixed predicate chosen by the class itself, never by input. |
-| 2 | **Hard-coded credentials** — `User Id=sa;Password=P@ssw0rd123;` committed to source control | The connection string is a constructor argument supplied from configuration, and is rejected if null or blank. The file contains no credentials, keys or tokens. |
-| 3 | **Unmanaged connection** — `new SqlConnection(...)` never closed; leaked on every exception | `using SqliteConnection connection = OpenConnection();` in every method. |
-| 4 | **Unmanaged command** — `new SqlCommand(...)` never disposed | `using SqliteCommand command = …`, `using SqliteDataReader reader = …`, and `using SqliteTransaction transaction = …` for the write paths. |
-| 5 | **Unsafe null handling** — `cmd.ExecuteScalar().ToString()` throws `NullReferenceException` when there is no result | `ExecuteScalar()` results are checked against `null` **and** `DBNull.Value` before use; `reader.Read()` returning false is a normal "no such row" outcome that returns `null`; `reader.IsDBNull(i)` guards every column read; an unparseable stored date is handled explicitly instead of being treated as "in the past". |
-| 6 | **No business rules** — any caller could over-subscribe an event or register twice | `RegistrationRules` is applied before any write, and the insert itself is guarded: `INSERT … SELECT … WHERE (SELECT COUNT(*) …) < (SELECT capacity …)`. Zero rows inserted means the event filled up first, which is reported, not crashed on. Combined with `UNIQUE (user_id, event_id)`, neither over-subscription nor a duplicate can be committed even under concurrent requests. |
+| Requirements, architecture, RCTC prompt | §2 of this file; `README.md` (Architecture) | Timothy Delmoro |
+| Front end (catalog, detail, registration, admin) | `frontend/`, root `index.html` | Justin Basilides |
+| Schema, seed data, ERD | `database/schema.sql`, `database/seed.sql`, §4.6 | Aian Cuento |
+| C# service, unit tests, security review | `backend/RegistrationService.cs`, `tests/` | Calvin Bellen |
+| Integration, setup, disclosure, verification log | this section, `README.md` | Timothy Delmoro |
 
-### Additional hardening in the refactor
+The pieces connect through one contract: the browser executes
+`database/schema.sql` and `database/seed.sql` through sql.js, and the C# service
+and tests implement the same rules against the same schema. The site does not
+call the C# code.
 
-- `PRAGMA foreign_keys = ON` per connection, or the schema's foreign keys would
-  not be enforced at all.
-- A transaction around each write, with an explicit `Rollback()` on the
-  "nothing was inserted" path, so no half-state can be committed.
-- An identity guard: an e-mail already on file under a different student
-  number is refused rather than silently overwritten.
-- A `Func<DateTime>` clock is injected, so the "past event" rule is testable
-  without waiting for time to pass.
-- The business rules live in a separate static class from the data access, so
-  the decision logic can be tested without a database and the SQL layer has no
-  policy in it.
+### 6.2 Setup Instructions
 
----
+1. **Get the code.** `git clone https://github.com/eximno/dlsud-eventhub.git`
+   then `cd dlsud-eventhub` (or use *Code → Download ZIP* on GitHub and unzip).
+2. **Run the site locally.** It must be served over http, not opened as a file:
+   `python3 -m http.server 8000`, then open <http://localhost:8000/>. Serve the
+   repository **root**, not `frontend/`. Nothing needs installing or building.
+3. **Public site.** After enabling Pages (Settings → Pages → *Deploy from a
+   branch* → `main` → `/ (root)`), the site is at
+   `https://eximno.github.io/dlsud-eventhub/`. Not verified on the real Pages
+   URL — see §6.5.
+4. **Inspect the SQLite database.** With the `sqlite3` CLI:
+   `sqlite3 /tmp/eventhub.db < database/schema.sql`,
+   `sqlite3 /tmp/eventhub.db < database/seed.sql`, then
+   `sqlite3 /tmp/eventhub.db "SELECT title, capacity, confirmed_count, remaining_seats FROM event_availability;"`.
+   Without it, use the Python snippet in `README.md` ("Inspecting the SQL
+   outside the browser"). In the running site, the Admin page shows the same
+   data.
+5. **Run the tests.** JavaScript (needs Node 18+):
+   `node --test "tests/**/*.test.mjs"`. C# (needs the .NET 8 SDK):
+   `dotnet test tests/DlsudEventHub.Tests.csproj`.
+6. **Where each deliverable is:** see the table in §6.1.
 
-## Security audit
+### 6.3 AI Disclosure Statement
+
+An AI assistant (Claude) was used for: requirements and architecture
+ideation (Task 1); front-end generation and refinement (Task 2); database
+schema and seed generation and the Mermaid ERD (Task 3); unit-test drafting,
+security analysis and the C# refactor (Task 4); and drafting this
+documentation and the README.
+
+The team reviewed, executed where possible, and corrected the output; the
+corrections that can be traced to the repository are in the Verification Log.
+This does **not** mean every result was changed — some generated artefacts
+were kept as produced after review (for example the foreign-key indexes and the
+`using` declarations, which needed no correction). Manual verification claims
+in this document are limited to what §6.5 lists as executed. The Task 2–4
+prompts are reconstructions, as stated at the top of this document.
+
+### 6.4 Verification Log
+
+Each entry is traceable to commit `9f4c5fc` (the audit commit) and to the tool
+that caught it. *Member responsible* follows the roster's task ownership.
+
+| Task # | Identified AI Flaw / Limitation | Manual Correction Applied | Caught by | Member Responsible |
+|---|---|---|---|---|
+| Task 2 | The "event not found" state was rendered with an `<h3>`, so the page had **no level-one heading** (WCAG heading structure). | Added a heading-level parameter to the state renderer and used `h1` where the state is the page's main content. | axe-core 4.10 (`page-has-heading-one`) | Justin Basilides |
+| Task 2 | The filter form had **no submit button** (WCAG technique H32), and a fast double-click on the register button navigated the student away from their own confirmation. | Added a real `type="submit"` Search button; added a 500 ms pointer shield on panel swaps plus a regression check. | html-validate (`wcag/h32`); a triple-click end-to-end check | Justin Basilides |
+| Task 3 | `CHECK (event_date = strftime(...))` silently **accepted invalid dates** because `x = NULL` is NULL and SQLite treats a NULL CHECK as passing. | Changed `=` to `IS`, with a comment; `'12/01/2026'`, `'2026-13-01T09:00'`, values with seconds and `''` are now rejected. | Negative-insert script against the committed SQL | Aian Cuento |
+| Task 4 | Generated repository built `CommandText` by **concatenating** a predicate string, so the constant-SQL guarantee did not literally hold. | Replaced with two complete constant, parameterised statements. | Security review of every `CommandText` | Calvin Bellen |
+| Task 4 | The JavaScript and C# **name rules diverged** (Latin-1 range vs `\p{L}`); the same name could pass one layer and fail the other. | Aligned the JavaScript to `\p{L}` and documented the mirroring in both files. | Line-by-line comparison while writing the second test suite | Calvin Bellen |
+
+**Not entered as flaws (checked against the repository and found not to have
+happened):** missing `aria-label`/labels on required inputs (labels were in the
+first commit), omitted foreign-key indexes (present in the first commit), and
+undisposed database resources (`using` was present in the first commit).
+
+### 6.5 Final Verification
+
+**Executed, with results**
+
+| Check | Result |
+|---|---|
+| `node --test "tests/**/*.test.mjs"` | 31 tests, 31 passed (re-run for this document) |
+| `schema.sql` + `seed.sql` loaded in SQLite; `PRAGMA foreign_key_check` | no violations; 9 events, 112 users, 115 registrations; all six `idx_*` indexes exist |
+| html-validate, ESLint 9, axe-core 4.10, `node tests/browser-checks.mjs` (Chromium) | Reported clean / 0 violations / 91 of 91 checks by the build session (`README.md`, commit messages); not re-run for this document |
+
+**Not executed**
+
+| Check | Status |
+|---|---|
+| `dotnet test` | **Not run** — no .NET SDK in the build environment. C# test results are unknown. |
+| Screen-reader pass (NVDA / VoiceOver) | **Not done.** |
+| Live GitHub Pages URL | **Not verified**; tested via a local static server serving the repository root. |
+
+**Known limitations:** browser-side SQLite is local to each visitor and not a
+secure system of record; the admin page has no authentication. Both are stated
+in `README.md` and on the admin page.
+
+### Security audit (supporting)
 
 | Risk | Status in this prototype |
 |---|---|
@@ -384,118 +693,6 @@ comment at the top of that file so the before/after can be read side by side.
 | Insecure local data assumptions | **Documented, not hidden.** The README and the admin page both state that browser-side SQLite is not authoritative and not secure. |
 | Authentication / authorisation | **Absent by design, and labelled.** The admin page carries a banner saying it has no authentication and provides no real access control. |
 
-**The honest summary:** this prototype has no server, so it has no trust
-boundary. Everything in it can be read and rewritten by whoever controls the
-browser. The injection and XSS mitigations are still worth having — they are
-the habits that matter when a server does exist, and they are what
-`backend/RegistrationService.cs` demonstrates properly — but no part of this
-prototype should be mistaken for a security control.
-
----
-
-## Verification log
-
-Instances where AI-generated output was wrong, incomplete or over-built, and
-what was done about it. Every entry below actually happened during this build;
-the evidence column says how each was caught.
-
-> **Member responsible** uses role placeholders. Replace each with the real
-> group member's name before submitting.
-
-| # | Task | AI flaw / limitation | Manual correction | How it was caught | Member responsible |
-|---|---|---|---|---|---|
-| 1 | 3 | The generated schema wrote `CHECK (event_date = strftime('%Y-%m-%dT%H:%M', event_date))`. For an unparseable value `strftime()` returns `NULL`, `'x' = NULL` evaluates to `NULL`, and SQLite treats a `NULL` `CHECK` as **satisfied** — so `'12/01/2026'` was accepted into the database. | Changed `=` to the `IS` operator, which compares against `NULL` correctly, and added a comment explaining why. `'12/01/2026'`, `'2026-12-01'`, `'2026-13-01T09:00'`, a value with seconds, and `''` are now all rejected. | A negative-constraint test script run against the committed SQL: 15 of 16 bad inserts were rejected and this one was not. | _Database lead — add name_ |
-| 2 | 2 | The generated registration flow replaced the form with a confirmation panel the instant the insert succeeded. A fast double-click therefore landed its second click on the "Browse more events" link that had appeared where the submit button was, and the student was navigated to the catalog **away from their own reference number**. The data was correct — exactly one registration — but the user lost the confirmation. | Added a 500 ms pointer shield (`.panel--settling`) applied whenever the panel swaps its contents, so links and buttons inside it ignore pointer input briefly; keyboard users are unaffected because focus is moved to the panel. Added a regression check asserting that rapid repeat clicks neither duplicate the registration nor change the URL. | An end-to-end check that triple-clicks the submit button and then asserts the registration count; it aborted because the page had navigated. | _Frontend lead — add name_ |
-| 3 | 2 | The generated "event not found" page rendered its message with an `<h3>` inside the main article, leaving that page with **no level-one heading** — a WCAG heading-structure failure on the one page a mistyped link lands on. | Gave the state renderer an explicit heading-level parameter and passed `h1` where the state *is* the page's main content (and `h2` for the admin failure state, which sits under the page `h1`). | `axe-core` 4.10 run over every page and every state: 1 violation, `page-has-heading-one`. | _Accessibility reviewer — add name_ |
-| 4 | 2 | The generated admin markup used `<div role="region" aria-labelledby="…" tabindex="0">` for the horizontally scrollable tables — ARIA standing in for an element HTML already has. | Replaced both with `<section aria-labelledby="…" tabindex="0">`, which carries the same role natively. | `html-validate` (`prefer-native-element`). | _Accessibility reviewer — add name_ |
-| 5 | 2 | The generated filter form had no submit button at all, because filtering happens on `input`. That fails WCAG technique H32 and leaves anyone who expects to press a button with nothing to press. | Added a real `type="submit"` **Search** button next to **Clear filters**, kept the live filtering, and kept the `submit` handler that already prevented a page reload on Enter. | `html-validate` (`wcag/h32`). | _Frontend lead — add name_ |
-| 6 | 4 | The generated JavaScript name rule used the Latin-1 range `[A-Za-zÀ-ÿÑñ.'\- ]` while the generated C# rule used `[\p{L}.'\- ]`. The **same name could pass one layer and fail the other**, which is exactly the kind of silent divergence the three-layer design is supposed to avoid. | Aligned the JavaScript to `/^[\p{L}.'\- ]+$/u` so both implementations apply one rule, and noted the mirroring requirement in both files. | Line-by-line comparison of the JavaScript rules against the C# rules while writing the second test suite. | _Backend lead — add name_ |
-| 7 | 4 | The first C# repository design checked capacity in application code and then inserted unconditionally. Two concurrent requests for the last seat would both pass the check and both insert, over-subscribing the event. | The insert now re-counts confirmed seats in its own `WHERE` clause, so the database enforces capacity; zero rows inserted is reported as "the last seat was taken while you were registering". A test drives that null-return path. | Design review of the write path: asking "what happens if two of these run at once?" | _Backend lead — add name_ |
-| 8 | 1 / 2 | The first architecture proposal was a React SPA with an Express/ASP.NET REST API, PostgreSQL, JWT auth, Docker Compose and a CI pipeline — none of which can run on GitHub Pages, and none of which is finishable in a 3-hour laboratory slot. | Rejected it, tightened the prompt with explicit negative constraints, and implemented static HTML/CSS/JS + SQLite via sql.js. The repository has zero runtime dependencies beyond the two vendored sql.js files. | Checking the proposal against the hard requirement that the site be reachable on GitHub Pages. | _Team lead — add name_ |
-| 9 | 2 | A generated CSS custom property was written as `--line-200: #e8ece a;` — an invalid value with a stray space, which silently produced no colour wherever the token was used. | Corrected the value and removed the defensive fallback that had been masking it. | Reading the generated stylesheet rather than trusting it, after a brace-balance check passed. | _Frontend lead — add name_ |
-| 10 | 2 | Generated JavaScript left dead code behind: an unused object built in the blur handler, and five `catch (error)` blocks whose binding was never read. | Removed the dead object and converted the deliberately-ignored catches to ES2019 optional catch binding, so the intent ("this failure is expected and ignorable") is visible rather than implied. | ESLint 9 (`no-unused-vars`). | _Frontend lead — add name_ |
-
----
-
-## What was and was not executed
-
-Being specific about this, because "the tests pass" means nothing without
-saying which tests actually ran.
-
-### Executed, with results
-
-| Check | Result |
-|---|---|
-| `node --test "tests/**/*.test.mjs"` | **31 tests, 31 passed** |
-| SQLite schema + seed executed, `PRAGMA foreign_key_check` | **clean** |
-| 16 negative constraint inserts + 1 valid insert | **all bad data rejected, valid data accepted** (after fixing log entry 1) |
-| `node --check` on all 5 frontend modules | **clean** |
-| ESLint 9 (`no-undef`, `no-unused-vars`, `eqeqeq`, `no-eval`, `no-implied-eval`, `no-new-func`, `curly`, …) | **clean** (after fixing log entry 10) |
-| `html-validate` 8 (recommended + document + a11y presets) | **clean** (after fixing log entries 4 and 5) |
-| `axe-core` 4.10 on 6 page states, at 1280 px and 320 px | **0 violations** (after fixing log entry 3) |
-| `node tests/browser-checks.mjs` in Chromium | **91 checks, 91 passed, 0 console errors, 0 uncaught errors, 0 failed requests** |
-
-### Not executed here
-
-| Check | Why | What to do |
-|---|---|---|
-| `dotnet test tests/DlsudEventHub.Tests.csproj` | The build environment had no .NET SDK and could not download one (the Microsoft download host is blocked by its network policy). | Run it on any machine with the **.NET 8 SDK**. The C# was reviewed by hand, case-for-case against the JavaScript rules that *are* executed and passing. |
-| Manual screen-reader pass (NVDA / VoiceOver) | No assistive technology available in the build environment. | `axe-core` and keyboard testing cover structure and focus, but a real screen-reader pass is still worth doing before the demo. |
-| Real GitHub Pages URL | Pages must be enabled on the repository by its owner. | Settings → Pages → *Deploy from a branch* → `main` → `/ (root)`. The site was verified against a static server serving the repository root, which is the same path layout Pages produces. |
-
----
-
-## AI usage disclosure
-
-An AI assistant (Claude) was used to draft the initial architecture, first
-versions of the SQL schema and seed data, the JavaScript modules, the C#
-service, both test suites, and this documentation.
-
-None of it was accepted as generated. Each artefact was read, executed where
-possible, tested against the requirements, and corrected — ten substantive
-corrections are listed above, three of which were genuine defects that would
-have shipped: a `CHECK` constraint that accepted invalid dates, a double-click
-that navigated students away from their own confirmation, and a page with no
-level-one heading. Where a generated suggestion was heavier than the
-requirements justified, it was simplified rather than kept, and the negative
-constraints in the Task 1 prompt exist precisely because the first attempt
-reached for a stack this examination cannot run.
-
----
-
-## Definition of done
-
-| Requirement | Status |
-|---|---|
-| DLSUD EventHub concept implemented | ✅ catalog, detail, registration, admin |
-| Static GitHub Pages frontend works | ✅ relative paths, root entry point, `.nojekyll` |
-| Browser-side SQLite through sql.js / WebAssembly | ✅ vendored, no CDN |
-| Event catalog | ✅ search, category filter, upcoming/past/all |
-| Event detail | ✅ with every invalid-id path handled |
-| Registration | ✅ with receipt and reference number |
-| DLSU-D e-mail validation | ✅ in the UI, the rules, the C# and the schema |
-| Seat availability | ✅ derived in SQL, clamped at 0, enforced on insert |
-| Duplicate registration prevented | ✅ UI, service, and `UNIQUE (user_id, event_id)` |
-| Admin attendee view | ✅ counts, capacity, remaining, attendee list, reset |
-| Semantic HTML | ✅ `html-validate` clean |
-| WCAG-conscious accessibility | ✅ `axe-core` 0 violations, keyboard verified |
-| Responsive layout | ✅ 320 / 375 / 768 / desktop, no horizontal overflow |
-| Database at least 3NF | ✅ justified in §3.2 |
-| Foreign keys | ✅ three, with explicit cascade behaviour |
-| `CHECK` constraints | ✅ on every table |
-| Foreign-key indexes | ✅ all three, plus three query indexes |
-| Mermaid ERD matches the schema | ✅ checked attribute-by-attribute |
-| `schema.sql` exists | ✅ `database/schema.sql` |
-| `seed.sql` exists | ✅ `database/seed.sql` |
-| `RegistrationService.cs` exists | ✅ `backend/RegistrationService.cs` |
-| C# refactor uses parameterised SQL | ✅ no concatenation anywhere |
-| C# resources disposed correctly | ✅ `using var` on connection, command, reader, transaction |
-| Meaningful unit tests exist | ✅ xUnit + Moq, and 31 executed `node:test` tests |
-| Tests verify real requirements | ✅ behaviour, not implementation detail |
-| README accurate | ✅ including what was not executed |
-| `SUBMISSION.md` satisfies every task | ✅ Tasks 1, 2, 3, 4A, 4B |
-| AI disclosure exists | ✅ in both documents |
-| Verification log exists | ✅ 10 entries, all real |
-| No obvious console / runtime errors | ✅ 0 across 91 browser checks |
-| No obvious prototype security vulnerability | ✅ audited above; architectural limits documented, not hidden |
-| No unnecessary framework or infrastructure | ✅ zero runtime dependencies beyond vendored sql.js |
+The prototype has no server and therefore no trust boundary; the injection and
+XSS mitigations are habits that matter once a server exists, which is what
+`backend/RegistrationService.cs` demonstrates.

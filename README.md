@@ -180,7 +180,7 @@ dlsud-eventhub/
 │   ├── validation.test.mjs         node:test suite for the frontend rules
 │   └── browser-checks.mjs          optional end-to-end browser checks
 ├── README.md
-└── SUBMISSION.md                   examination write-up (Tasks 1–4, ERD, log)
+└── SUBMISSION.md                   examination write-up (Tasks 1–5, ERD, verification log)
 ```
 
 ---
@@ -425,7 +425,7 @@ also fails if the browser console logs a single error.
 | ESLint 9 (`no-undef`, `no-unused-vars`, `eqeqeq`, `no-eval`, …) | clean |
 | `html-validate` (recommended + document + a11y presets) | clean |
 | `axe-core` 4.10 on all pages and states, at 1280 px and 320 px | 0 violations |
-| SQLite constraint tests (31 negative + positive cases via Python's `sqlite3`) | all constraints reject invalid data |
+| SQLite constraint tests (negative + positive insert cases via Python's `sqlite3`) | all constraints reject invalid data |
 | Playwright end-to-end checks | 91/91, no console errors |
 
 ---
