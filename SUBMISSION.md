@@ -684,7 +684,7 @@ undisposed database resources (`using` was present in the first commit).
 |---|---|
 | `dotnet test` | **Not run** — no .NET SDK in the build environment. C# test results are unknown. |
 | Screen-reader pass (NVDA / VoiceOver) | **Not done.** |
-| Live GitHub Pages URL | **Not verified**; tested via a local static server serving the repository root. |
+| Live GitHub Pages URL | **Not verified** — Pages must be enabled by the repository owner. The *path layout* Pages produces has been exercised, though: the browser suite was run twice, once at a server root and once under a `/dlsud-eventhub/` subpath, passing 95 of 95 both times. |
 
 **Known limitations:** browser-side SQLite is local to each visitor and not a
 secure system of record; the admin page has no authentication. Both are stated
