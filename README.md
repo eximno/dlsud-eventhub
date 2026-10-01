@@ -4,7 +4,7 @@ A lightweight, browser-based campus event registration prototype for
 De La Salle University–Dasmariñas, built for a 4th-year BSIT group laboratory
 examination.
 
-**Group members:** Basilides, Bellen, Cuento, Delmoro
+**Group members:** Timothy Delmoro, Justin Basilides, Aian Cuento, Calvin Bellen
 
 > **Not an official university system.** DLSUD EventHub is a student academic
 > project. It is not affiliated with, endorsed by, or connected to De La Salle

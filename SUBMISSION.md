@@ -3,6 +3,7 @@
 ## Group Laboratory Examination Submission
 
 **Course:** 4th-year BSIT group laboratory examination
+**Group members:** Timothy Delmoro, Justin Basilides, Aian Cuento, Calvin Bellen
 **Repository:** <https://github.com/eximno/dlsud-eventhub>
 **Live site:** GitHub Pages → Settings → Pages → *Deploy from a branch*, `main`, `/ (root)`
 
@@ -31,8 +32,14 @@
 
 ## 1. Team Roster
 
-| Member | Role | Primary Responsibility |
-|---|---|---|
+| # | Member | Role | Primary Responsibility |
+|---|---|---|---|
+| Member 1 | Timothy Delmoro | Systems Architect & Prompt Lead | Task 1 + Task 5 |
+| Member 2 | Justin Basilides | Frontend Engineer | Task 2 |
+| Member 3 | Aian Cuento | Database & Backend Engineer | Task 3 |
+| Member 4 | Calvin Bellen | QA & Security Engineer | Task 4 |
+
+---|---|---|
 | Timothy Delmoro | Systems Architect & Prompt Lead | Task 1 + Task 5 |
 | Justin Basilides | Frontend Engineer | Task 2 |
 | Aian Cuento | Database & Backend Engineer | Task 3 |
