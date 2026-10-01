@@ -426,6 +426,16 @@ blocked `localStorage`, a simulated database-initialisation failure, and a
 tampered client that removes the JavaScript capacity rule and is still refused
 by the database. It also fails if the browser console logs a single error.
 
+The same checks also pass against GitHub Pages' path layout, where the site
+lives under `/<repository-name>/` rather than at the server root:
+
+```bash
+cd ..                                        # serve the PARENT directory
+python3 -m http.server 8124 &
+EVENTHUB_BASE=http://127.0.0.1:8124/dlsud-eventhub \
+    node dlsud-eventhub/tests/browser-checks.mjs
+```
+
 ### Static analysis actually run against this repository
 
 | Tool | Result |
@@ -435,7 +445,7 @@ by the database. It also fails if the browser console logs a single error.
 | `html-validate` (recommended + document + a11y presets) | clean |
 | `axe-core` 4.10 on all pages and states, at 1280 px and 320 px | 0 violations |
 | SQLite constraint tests (negative + positive insert cases via Python's `sqlite3`) | all constraints reject invalid data |
-| Playwright end-to-end checks | 95/95, no console errors |
+| Playwright end-to-end checks | 95/95 at the server root, and 95/95 again under a `/dlsud-eventhub/` subpath |
 
 ---
 

@@ -20,6 +20,13 @@
  *     python3 -m http.server 8123 &        # serve the REPOSITORY ROOT
  *     node tests/browser-checks.mjs
  *
+ * To reproduce GitHub Pages' path layout (the site lives under
+ * /<repository-name>/ there, not at the root), serve the PARENT of the
+ * repository instead and point the checks at the subpath:
+ *     cd .. && python3 -m http.server 8124 &
+ *     EVENTHUB_BASE=http://127.0.0.1:8124/dlsud-eventhub \
+ *         node dlsud-eventhub/tests/browser-checks.mjs
+ *
  * Environment variables:
  *     EVENTHUB_BASE    base URL          (default http://127.0.0.1:8123)
  *     CHROMIUM_PATH    browser binary    (default: Playwright's own download)
