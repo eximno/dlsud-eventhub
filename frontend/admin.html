@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin dashboard - DLSUD EventHub</title>
+    <meta name="description" content="Prototype admin dashboard showing event capacity, registration counts and attendee lists for DLSUD EventHub. Demonstration only - no authentication.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23115437'/%3E%3Crect y='26' width='32' height='6' rx='2' fill='%23b8871b'/%3E%3Ctext x='16' y='20' font-family='Arial,Helvetica,sans-serif' font-size='15' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EEH%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="admin">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <a class="brand" href="index.html">
+                <span class="brand__mark" aria-hidden="true">DLSU-D</span>
+                <span>
+                    <span class="brand__name">DLSUD <span>EventHub</span></span>
+                    <span class="brand__tag">Campus event registration</span>
+                </span>
+            </a>
+            <nav class="site-nav" aria-label="Main">
+                <ul>
+                    <li><a href="index.html" data-nav="catalog">Events</a></li>
+                    <li><a href="admin.html" data-nav="admin">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main">
+        <div class="container section">
+            <div class="section__head">
+                <div>
+                    <h1>Admin dashboard</h1>
+                    <p>Capacity, registration counts and attendee lists for every event in the prototype.</p>
+                </div>
+                <button type="button" class="btn btn--secondary" id="reset-data">Reset prototype data</button>
+            </div>
+
+            <div class="alert alert--warn" role="note">
+                <span class="alert__icon" aria-hidden="true">&#9888;&#65038;</span>
+                <div>
+                    <h2>Prototype demonstration &mdash; no real security</h2>
+                    <p>
+                        This page has <strong>no authentication</strong> and provides no real access
+                        control. It reads a SQLite database that lives in this browser, so the data
+                        below is local, editable by anyone using this device, and not authoritative.
+                        A production system would enforce authentication and authorisation on a
+                        server, where the browser cannot reach the data at all.
+                    </p>
+                </div>
+            </div>
+
+            <div class="alert" id="page-alert" role="alert"></div>
+
+            <div id="admin-content">
+                <h2 class="visually-hidden">Summary</h2>
+                <dl class="stat-grid" id="admin-stats">
+                    <div class="stat"><dt>Events</dt><dd>&mdash;</dd></div>
+                    <div class="stat"><dt>Confirmed registrations</dt><dd>&mdash;</dd></div>
+                    <div class="stat"><dt>Seats remaining</dt><dd>&mdash;</dd></div>
+                </dl>
+
+                <h2 id="events-heading">Events and capacity</h2>
+                <div class="table-scroll" role="region" aria-labelledby="events-heading" tabindex="0">
+                    <table class="data">
+                        <caption>All events, newest first</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Event</th>
+                                <th scope="col">Date</th>
+                                <th scope="col" class="num">Capacity</th>
+                                <th scope="col" class="num">Registered</th>
+                                <th scope="col" class="num">Remaining</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-events-body">
+                            <tr><td colspan="6">Loading events&hellip;</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 id="attendees-heading" style="margin-top:2.5rem">Attendees</h2>
+                <div class="toolbar" id="attendee-form">
+                    <div class="toolbar__field toolbar__field--search">
+                        <label for="attendee-event">Event</label>
+                        <span class="field__hint" id="attendee-event-hint">Choose an event to list the students registered for it.</span>
+                        <select id="attendee-event" name="event" aria-describedby="attendee-event-hint">
+                            <option value="">Loading&hellip;</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="toolbar__meta" id="attendee-meta" role="status" aria-live="polite"></p>
+
+                <div class="table-scroll" role="region" aria-labelledby="attendees-heading" tabindex="0">
+                    <table class="data">
+                        <caption id="attendee-caption">Attendees</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Student number</th>
+                                <th scope="col">E-mail</th>
+                                <th scope="col">College</th>
+                                <th scope="col">Registered at</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendee-body">
+                            <tr><td colspan="6">Loading attendees&hellip;</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>
+                <strong>DLSUD EventHub</strong> &mdash; a 4th-year BSIT laboratory prototype.
+                Not an official De La Salle University-Dasmarinas system. Sample data only.
+            </p>
+            <p>
+                Browser-side SQLite is used so the prototype can be hosted as a static site.
+                It is <strong>not</strong> a secure production architecture.
+                <a href="index.html">Back to all events</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="vendor/sql-wasm.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/registration.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

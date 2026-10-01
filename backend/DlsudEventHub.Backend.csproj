@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Examination deliverable: the secure server-side registration service.
+       This library is NOT used by the GitHub Pages frontend (see README.md).
+       Build with:  dotnet build backend/DlsudEventHub.Backend.csproj -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>DlsudEventHub.Backend</RootNamespace>
+    <AssemblyName>DlsudEventHub.Backend</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft.Data.Sqlite bundles a modern SQLite build, which the
+         INSERT ... RETURNING statements in the repository require (3.35+). -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+  </ItemGroup>
+
+</Project>

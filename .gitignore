@@ -1,0 +1,31 @@
+# ---- .NET (backend/ and tests/ exam deliverables) ----
+bin/
+obj/
+*.user
+*.suo
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ---- Node (only used to run the JavaScript unit tests) ----
+node_modules/
+npm-debug.log*
+
+# ---- Editors / OS ----
+.vs/
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---- Local artefacts ----
+# Generated SQLite files. The schema and seed SQL are the sources of truth and
+# ARE committed; built .db/.sqlite files are not.
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DLSUD EventHub - Campus Event Registration</title>
+    <meta name="description" content="DLSUD EventHub is a student prototype for browsing and registering for campus events at De La Salle University-Dasmarinas. Academic project, not an official university system.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23115437'/%3E%3Crect y='26' width='32' height='6' rx='2' fill='%23b8871b'/%3E%3Ctext x='16' y='20' font-family='Arial,Helvetica,sans-serif' font-size='15' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EEH%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="catalog">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <a class="brand" href="index.html">
+                <span class="brand__mark" aria-hidden="true">DLSU-D</span>
+                <span>
+                    <span class="brand__name">DLSUD <span>EventHub</span></span>
+                    <span class="brand__tag">Campus event registration</span>
+                </span>
+            </a>
+            <nav class="site-nav" aria-label="Main">
+                <ul>
+                    <li><a href="index.html" data-nav="catalog">Events</a></li>
+                    <li><a href="admin.html" data-nav="admin">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main">
+        <section class="hero" aria-labelledby="hero-heading">
+            <div class="container hero__inner">
+                <div>
+                    <p class="hero__eyebrow">Student prototype &middot; Sample data</p>
+                    <h1 id="hero-heading">Find your next event on campus</h1>
+                    <p class="hero__lead">
+                        Browse upcoming talks, workshops, seminars and fairs, check how many
+                        seats are left, and reserve yours with your DLSU-D student e-mail
+                        address. Everything runs in your browser.
+                    </p>
+                    <p class="hero__actions">
+                        <a class="btn btn--primary" href="#catalog">Browse events</a>
+                        <a class="btn btn--ghost" href="admin.html">Admin dashboard</a>
+                    </p>
+                </div>
+                <dl class="hero__stats">
+                    <div>
+                        <dt>Upcoming events</dt>
+                        <dd id="stat-upcoming">&mdash;</dd>
+                    </div>
+                    <div>
+                        <dt>Seats available</dt>
+                        <dd id="stat-seats">&mdash;</dd>
+                    </div>
+                    <div>
+                        <dt>Registrations</dt>
+                        <dd id="stat-registrations">&mdash;</dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <section class="section" id="catalog" aria-labelledby="catalog-heading">
+            <div class="container">
+                <div class="section__head">
+                    <div>
+                        <h2 id="catalog-heading">Event catalog</h2>
+                        <p>Search by keyword, filter by category, then open an event to register.</p>
+                    </div>
+                </div>
+
+                <div class="alert" id="page-alert" role="alert"></div>
+
+                <form class="toolbar" id="filter-form" role="search" aria-labelledby="catalog-heading">
+                    <div class="toolbar__field toolbar__field--search">
+                        <label for="search-input">Search events</label>
+                        <span class="field__hint" id="search-hint">Matches titles, descriptions, venues and categories.</span>
+                        <input type="search" id="search-input" name="q"
+                               placeholder="e.g. cybersecurity"
+                               maxlength="80" autocomplete="off"
+                               aria-describedby="search-hint">
+                    </div>
+                    <div class="toolbar__field">
+                        <label for="category-filter">Category</label>
+                        <select id="category-filter" name="category">
+                            <option value="">All categories</option>
+                        </select>
+                    </div>
+                    <div class="toolbar__field">
+                        <label for="when-filter">Show</label>
+                        <select id="when-filter" name="when">
+                            <option value="upcoming">Upcoming events</option>
+                            <option value="past">Past events</option>
+                            <option value="all">All events</option>
+                        </select>
+                    </div>
+                    <div class="toolbar__actions toolbar__field">
+                        <button type="button" class="btn btn--secondary" id="clear-filters">Clear filters</button>
+                    </div>
+                </form>
+
+                <p class="toolbar__meta" id="results-meta" role="status" aria-live="polite">Loading events&hellip;</p>
+
+                <ul class="card-grid" id="event-list" aria-busy="true">
+                    <li class="skeleton-card" aria-hidden="true"></li>
+                    <li class="skeleton-card" aria-hidden="true"></li>
+                    <li class="skeleton-card" aria-hidden="true"></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>
+                <strong>DLSUD EventHub</strong> &mdash; a 4th-year BSIT laboratory prototype.
+                Not an official De La Salle University-Dasmarinas system, and not affiliated
+                with or endorsed by the university. All events and students shown are sample data.
+            </p>
+            <p>
+                The database runs entirely in your browser through SQLite compiled to
+                WebAssembly, so nothing you type is sent to a server &mdash; and nothing stored
+                here is secure or authoritative.
+                <a href="https://github.com/eximno/dlsud-eventhub#readme">Project README and documentation</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="vendor/sql-wasm.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/registration.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

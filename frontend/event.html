@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Event details - DLSUD EventHub</title>
+    <meta name="description" content="Event details and seat registration for a sample DLSUD EventHub campus event. Academic prototype.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23115437'/%3E%3Crect y='26' width='32' height='6' rx='2' fill='%23b8871b'/%3E%3Ctext x='16' y='20' font-family='Arial,Helvetica,sans-serif' font-size='15' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EEH%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="event">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <a class="brand" href="index.html">
+                <span class="brand__mark" aria-hidden="true">DLSU-D</span>
+                <span>
+                    <span class="brand__name">DLSUD <span>EventHub</span></span>
+                    <span class="brand__tag">Campus event registration</span>
+                </span>
+            </a>
+            <nav class="site-nav" aria-label="Main">
+                <ul>
+                    <li><a href="index.html" data-nav="catalog">Events</a></li>
+                    <li><a href="admin.html" data-nav="admin">Admin</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main">
+        <div class="container">
+            <nav class="breadcrumb" aria-label="Breadcrumb">
+                <ol>
+                    <li><a href="index.html">Events</a></li>
+                    <li><span id="breadcrumb-current" aria-current="page">Loading&hellip;</span></li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="container section">
+            <div class="alert" id="page-alert" role="alert"></div>
+
+            <div class="detail">
+                <article id="event-detail" aria-busy="true">
+                    <h1>Loading event&hellip;</h1>
+                    <p>Starting the browser database and reading the event details.</p>
+                </article>
+
+                <aside id="registration-panel" class="panel" aria-label="Registration">
+                    <h2>Registration</h2>
+                    <p><span class="spinner" aria-hidden="true"></span> Preparing the registration form&hellip;</p>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>
+                <strong>DLSUD EventHub</strong> &mdash; a 4th-year BSIT laboratory prototype.
+                Not an official De La Salle University-Dasmarinas system. Sample data only.
+            </p>
+            <p>
+                Registrations are written to a SQLite database that lives inside this browser.
+                Clearing your browser data removes them. <a href="index.html">Back to all events</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="vendor/sql-wasm.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/registration.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
