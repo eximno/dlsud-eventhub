@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin dashboard - DLSUD EventHub</title>
     <meta name="description" content="Prototype admin dashboard showing event capacity, registration counts and attendee lists for DLSUD EventHub. Demonstration only - no authentication.">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23115437'/%3E%3Crect y='26' width='32' height='6' rx='2' fill='%23b8871b'/%3E%3Ctext x='16' y='20' font-family='Arial,Helvetica,sans-serif' font-size='15' font-weight='700' fill='%23ffffff' text-anchor='middle'%3EEH%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/webp" href="img/logo.webp">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body data-page="admin">
@@ -14,7 +14,7 @@
     <header class="site-header">
         <div class="container site-header__inner">
             <a class="brand" href="index.html">
-                <span class="brand__mark" aria-hidden="true">DLSU-D</span>
+                <img class="brand__mark" src="img/logo.webp" alt="" width="42" height="42">
                 <span>
                     <span class="brand__name">DLSUD <span>EventHub</span></span>
                     <span class="brand__tag">Campus event registration</span>
@@ -88,7 +88,7 @@
                 </section>
 
                 <h2 id="attendees-heading" style="margin-top:2.5rem">Attendees</h2>
-                <div class="toolbar" id="attendee-form">
+                <div class="toolbar toolbar--single" id="attendee-form">
                     <div class="toolbar__field toolbar__field--search">
                         <label for="attendee-event">Event</label>
                         <span class="field__hint" id="attendee-event-hint">Choose an event to list the students registered for it.</span>

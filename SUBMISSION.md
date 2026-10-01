@@ -219,7 +219,7 @@ The generated front end is `frontend/index.html` (catalog), `frontend/event.html
 | Accessible forms | every control has a real `<label for>`; hints and errors wired with `aria-describedby`; `aria-invalid` on failure; `novalidate` so the app owns the messages |
 | Accessible labels | `frontend/js/app.js` → `buildForm()`; filter labels in `frontend/index.html` |
 | Colour contrast | all text ≥ 4.5:1; gold is used as a border/background accent, with `--gold-600` reserved for text on white (5.4:1) |
-| Alt text / decoration | informative text is real text; decorative elements (seat bar, logo mark, alert glyphs) are `aria-hidden="true"` |
+| Alt text / decoration | informative text is real text; the header logo is an `<img alt="">` beside the wordmark, and the seat bar and alert glyphs are `aria-hidden="true"` |
 | Event catalog | `frontend/index.html` + `frontend/js/events.js` → `listEvents()`, `renderEventCard()` |
 | Event registration form | `frontend/event.html` + `frontend/js/app.js` → `buildForm()`, `wireForm()`, `submitRegistration()` |
 | Responsive UI | fluid grids, `clamp()` type, breakpoints at 960 px and 620 px; verified at 320/375/768 px with no horizontal overflow |
@@ -283,8 +283,10 @@ Verified in the repository:
   confirmation panel.
 - **Contrast / motion / touch:** gold text uses `--gold-600` (5.4:1 on white);
   `prefers-reduced-motion` is honoured; controls have a 44 px minimum height.
-- **Images:** the project contains **no `<img>` elements**, so there is no
-  informative image needing alt text; decorative marks are `aria-hidden`.
+- **Images:** the only image is the header logo, an `<img alt="">` placed next
+  to the wordmark that already names the site, so it is deliberately treated as
+  decorative; no other informative image exists. The seat bar and alert glyphs
+  are `aria-hidden`.
 - **Tooling run during the build:** html-validate (clean), axe-core 4.10 on six
   page states at 1280 px and 320 px (0 violations after the `h1` fix), and 91
   Playwright checks including keyboard focus order.
@@ -561,7 +563,7 @@ Counted from the file: **22 `[Fact]` tests and 6 `[Theory]` tests with 44
 against the JavaScript the website runs.
 
 > **Execution status — be precise.**
-> `node --test "tests/**/*.test.mjs"` was run and gives **31 tests, 31
+> `node --test tests/validation.test.mjs` was run and gives **31 tests, 31
 > passed** (re-run while preparing this document).
 > `dotnet test tests/DlsudEventHub.Tests.csproj` has **not** been executed: the
 > build environment has no .NET SDK. The C# tests were reviewed by hand and
@@ -616,7 +618,7 @@ call the C# code.
    outside the browser"). In the running site, the Admin page shows the same
    data.
 5. **Run the tests.** JavaScript (needs Node 18+):
-   `node --test "tests/**/*.test.mjs"`. C# (needs the .NET 8 SDK):
+   `node --test tests/validation.test.mjs`. C# (needs the .NET 8 SDK):
    `dotnet test tests/DlsudEventHub.Tests.csproj`.
 6. **Where each deliverable is:** see the table in §6.1.
 
@@ -640,7 +642,7 @@ prompts are reconstructions, as stated at the top of this document.
 
 Instances where AI-generated output was wrong, incomplete or over-built, and
 what was done about it. *How it was caught* names the tool or check. Entries
-1–6 and 9–10 are traceable to commit `9f4c5fc`; entries 7 and 8 are
+1–6 and 9–10 are traceable to commit `9f4c5fc`; entries 11–13 come from later audit commits on `main`; entries 7 and 8 are
 team-recorded design-review findings that predate the first commit and cannot
 be reproduced from git history. *Member responsible* follows the roster's task
 ownership.
@@ -657,6 +659,9 @@ ownership.
 | 8 | 1 / 2 | The first architecture proposal was a React SPA with an Express/ASP.NET REST API, PostgreSQL, JWT auth, Docker Compose and a CI pipeline — none of which can run on GitHub Pages, and none of which is finishable in a 3-hour laboratory slot. | Rejected it, tightened the prompt with explicit negative constraints, and implemented static HTML/CSS/JS + SQLite via sql.js. The repository has zero runtime dependencies beyond the two vendored sql.js files. | Checking the proposal against the hard requirement that the site be reachable on GitHub Pages. | Timothy Delmoro |
 | 9 | 2 | A generated CSS custom property was written as `--line-200: #e8ece a;` — an invalid value with a stray space, which silently produced no colour wherever the token was used. | Corrected the value and removed the defensive fallback that had been masking it. | Reading the generated stylesheet rather than trusting it, after a brace-balance check passed. | Justin Basilides |
 | 10 | 2 | Generated JavaScript left dead code behind: an unused object built in the blur handler, and five `catch (error)` blocks whose binding was never read. | Removed the dead object and converted the deliberately-ignored catches to ES2019 optional catch binding, so the intent ("this failure is expected and ignorable") is visible rather than implied. | ESLint 9 (`no-unused-vars`). | Justin Basilides |
+| 11 | 2 | The event detail page's "date / venue / category / capacity" block was a `<dl>` laid out as a CSS grid with bare `<dt>` and `<dd>` children. Because each element is its own grid item, **labels and values landed in different columns**. The markup was valid and the automated checks were green; it was simply wrong on screen. | Wrapped each `dt`/`dd` pair in a `<div>` (valid inside a `<dl>`) so the pair is one grid item, and said why in a comment. | Rendering the page in a real browser and **looking at it**; no linter, test or accessibility checker reported it. | Justin Basilides |
+| 12 | 2 | Every field error message sat inside its own `aria-live="polite"` region *and* was summarised by a `role="alert"` box, so a screen reader announced each error **twice** on submit. | Removed the live regions from the field messages; they remain reachable through `aria-describedby` when focus lands on the field, and the summary alert announces the count once. | Reading the generated ARIA against what it would actually do. | Justin Basilides |
+| 13 | 2 / 4 | In the browser path, capacity was enforced only by the JavaScript decision taken immediately before the `INSERT`, so "the database enforces capacity", true of the C# deliverable, was **not** true of the site. | Gave the browser the same capacity-guarded `INSERT … SELECT … WHERE (count) < (capacity)` and made a zero-row insert roll the transaction back. A browser check disables the JavaScript rule, submits against a full event, and asserts the event stays at 40/40 with no orphan student record. | Comparing the two implementations' write paths while documenting them. | Calvin Bellen |
 
 **Not entered as flaws (checked against the repository and found not to have
 happened):** missing `aria-label`/labels on required inputs (labels were in the
@@ -669,9 +674,9 @@ undisposed database resources (`using` was present in the first commit).
 
 | Check | Result |
 |---|---|
-| `node --test "tests/**/*.test.mjs"` | 31 tests, 31 passed (re-run for this document) |
+| `node --test tests/validation.test.mjs` | 31 tests, 31 passed (re-run for this document) |
 | `schema.sql` + `seed.sql` loaded in SQLite; `PRAGMA foreign_key_check` | no violations; 9 events, 112 users, 115 registrations; all six `idx_*` indexes exist |
-| html-validate, ESLint 9, axe-core 4.10, `node tests/browser-checks.mjs` (Chromium) | Reported clean / 0 violations / 91 of 91 checks by the build session (`README.md`, commit messages); not re-run for this document |
+| html-validate, ESLint 9, axe-core 4.10, `node tests/browser-checks.mjs` (Chromium) | Reported clean / 0 violations / 95 of 95 checks by the build session (`README.md`, commit messages); not re-run for this document |
 
 **Not executed**
 
@@ -696,6 +701,7 @@ in `README.md` and on the admin page.
 | Invalid identifiers | **Mitigated.** `?id=` is accepted only as a plain positive integer (`/^[0-9]{1,9}$/`), so `1.5`, `1e3`, `0x2`, `-5` and `1; DROP TABLE events` all produce a "not found" page. |
 | Oversized input | **Mitigated.** `maxlength` in the UI, explicit ceilings in the rules (names 100, e-mail 100, student number 12, search 80) and `CHECK` length constraints in the schema. |
 | Duplicate submission | **Mitigated.** Submitting flag, disabled busy button, re-check inside the transaction, `UNIQUE (user_id, event_id)`, and a pointer shield after the panel swaps so a stray repeat click cannot act on the new content. |
+| Over-subscription by a tampered client | **Mitigated.** Both the browser and the C# service insert through `INSERT … SELECT … WHERE (confirmed count) < (capacity)`, so the database refuses the row even when the client-side rule is removed. A browser check does exactly that and asserts the event stays at capacity with no orphan record. |
 | Manipulated registration state | **Partly mitigated, and documented.** A corrupted or hand-edited database cannot produce negative seats or re-open a full event (the view clamps at 0, the rules treat over-subscription as full, and a non-positive capacity makes the event invalid). It cannot be *prevented*, because the data lives in the visitor's own browser. |
 | Prototype pollution | **Not applicable in practice.** No deep-merge, no `Object.assign` over user input, no dynamic property assignment from parsed input; query parameters are read individually and validated. |
 | Credential exposure | **None.** No passwords, keys or tokens anywhere in the repository. The C# connection string is injected from configuration. |

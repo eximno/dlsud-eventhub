@@ -9,7 +9,10 @@ examination.
 > **Not an official university system.** DLSUD EventHub is a student academic
 > project. It is not affiliated with, endorsed by, or connected to De La Salle
 > University–Dasmariñas. Every event and every student in the database is
-> sample data invented for the prototype.
+> sample data invented for the prototype. The university seal is used only to
+> identify the academic context of this coursework; it does not indicate
+> university endorsement, and it should be removed before the project is shown
+> anywhere outside the course.
 
 ---
 
@@ -65,7 +68,7 @@ The admin page is a **demonstration** with no authentication. See
 | Layer | Choice | Why |
 |---|---|---|
 | Markup | Vanilla HTML5 | Semantic structure, no build step |
-| Styling | Vanilla CSS (one file, ~23 KB) | Custom properties are enough; no framework needed |
+| Styling | Vanilla CSS (one file, ~24 KB) | Custom properties are enough; no framework needed |
 | Behaviour | Vanilla JavaScript (5 small modules) | No framework, no bundler, no transpiler |
 | Database | SQLite via [sql.js](https://sql.js.org) 1.13.0 (WebAssembly) | Real SQL, real constraints, runs with no server |
 | Persistence | `localStorage` snapshot of the SQLite file | Survives a reload without a backend |
@@ -158,6 +161,7 @@ dlsud-eventhub/
 │   ├── event.html                  event detail + registration form
 │   ├── admin.html                  prototype admin dashboard
 │   ├── css/styles.css              the entire stylesheet
+│   ├── img/logo.webp               university seal used as the site logo
 │   ├── js/
 │   │   ├── validation.js           pure field rules, unit tested
 │   │   ├── registration.js         pure seat/duplicate rules, unit tested
@@ -377,12 +381,16 @@ full", even when both are true.
 ### JavaScript business rules — runs with no installation
 
 ```bash
-node --test "tests/**/*.test.mjs"
+node --test tests/validation.test.mjs
 ```
 
 31 tests over the rules the website actually enforces: the e-mail rule, field
 rules, search clamping, event-id parsing, seat maths, and every registration
-refusal. Requires only Node.js (18+). There are no dependencies to install.
+refusal. Requires only Node.js 20 or newer, and there is nothing to install.
+
+(On Node 22+ you can also run the whole folder with
+`node --test "tests/**/*.test.mjs"`. Older versions do not expand that glob,
+which is why the explicit path is given above.)
 
 ### C# business rules and the secure service
 
@@ -408,14 +416,15 @@ python3 -m http.server 8123 &
 node tests/browser-checks.mjs
 ```
 
-91 checks drive a real Chromium against the running site: catalog rendering,
+95 checks drive a real Chromium against the running site: catalog rendering,
 search and filters, wildcard and SQL-ish search input, malformed catalog query
 parameters, every invalid event-id form, form validation, Enter-to-submit, a
 successful registration, duplicate and identity-conflict refusals, rapid repeat
 clicks, persistence across a reload, the admin dashboard with its empty and
 cancelled states and its reset, three mobile widths, keyboard focus order,
-blocked `localStorage`, and a simulated database-initialisation failure. It
-also fails if the browser console logs a single error.
+blocked `localStorage`, a simulated database-initialisation failure, and a
+tampered client that removes the JavaScript capacity rule and is still refused
+by the database. It also fails if the browser console logs a single error.
 
 ### Static analysis actually run against this repository
 
@@ -426,7 +435,7 @@ also fails if the browser console logs a single error.
 | `html-validate` (recommended + document + a11y presets) | clean |
 | `axe-core` 4.10 on all pages and states, at 1280 px and 320 px | 0 violations |
 | SQLite constraint tests (negative + positive insert cases via Python's `sqlite3`) | all constraints reject invalid data |
-| Playwright end-to-end checks | 91/91, no console errors |
+| Playwright end-to-end checks | 95/95, no console errors |
 
 ---
 
@@ -449,8 +458,9 @@ with `axe-core` (0 violations) plus manual keyboard testing.
   `aria-current` as well as colour.
 - ARIA is used only where HTML has no equivalent — the table scroll areas are
   `<section tabindex="0">`, not `<div role="region">`.
-- Decorative elements (the seat bar, the logo mark, icons) are
-  `aria-hidden="true"` so they are not announced.
+- Decorative elements are not announced: the seat bar and the alert glyphs are
+  `aria-hidden="true"`, and the header logo is an `<img alt="">` beside the
+  wordmark that already names the site.
 - `prefers-reduced-motion` disables the shimmer and spinner animations.
 - Touch targets are at least 44 px tall.
 
@@ -515,6 +525,12 @@ What the prototype *does* get right, and why it is worth doing even here:
   terms are length-limited in the UI, in the rules and in the schema.
 - **Untrusted URL parameters.** Event ids from the query string are accepted
   only as plain positive integers; anything else shows a "not found" page.
+  Catalog filters from the query string are checked against the values the
+  controls actually offer.
+- **The database, not the UI, enforces capacity.** Registrations are written
+  with `INSERT … SELECT … WHERE (confirmed count) < (capacity)`, in the browser
+  and in the C# service alike, so removing the client-side rule does not buy an
+  extra seat.
 - **No credentials in source control.** The C# connection string is injected
   from configuration; the repository contains no passwords, keys or tokens.
 - **Honest failure.** A blocked `localStorage`, a missing `.sql` file or a
