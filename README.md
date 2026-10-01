@@ -68,7 +68,7 @@ The admin page is a **demonstration** with no authentication. See
 | Layer | Choice | Why |
 |---|---|---|
 | Markup | Vanilla HTML5 | Semantic structure, no build step |
-| Styling | Vanilla CSS (one file, ~23 KB) | Custom properties are enough; no framework needed |
+| Styling | Vanilla CSS (one file, ~24 KB) | Custom properties are enough; no framework needed |
 | Behaviour | Vanilla JavaScript (5 small modules) | No framework, no bundler, no transpiler |
 | Database | SQLite via [sql.js](https://sql.js.org) 1.13.0 (WebAssembly) | Real SQL, real constraints, runs with no server |
 | Persistence | `localStorage` snapshot of the SQLite file | Survives a reload without a backend |
@@ -161,6 +161,7 @@ dlsud-eventhub/
 │   ├── event.html                  event detail + registration form
 │   ├── admin.html                  prototype admin dashboard
 │   ├── css/styles.css              the entire stylesheet
+│   ├── img/logo.webp               university seal used as the site logo
 │   ├── js/
 │   │   ├── validation.js           pure field rules, unit tested
 │   │   ├── registration.js         pure seat/duplicate rules, unit tested
@@ -380,12 +381,16 @@ full", even when both are true.
 ### JavaScript business rules — runs with no installation
 
 ```bash
-node --test "tests/**/*.test.mjs"
+node --test tests/validation.test.mjs
 ```
 
 31 tests over the rules the website actually enforces: the e-mail rule, field
 rules, search clamping, event-id parsing, seat maths, and every registration
-refusal. Requires only Node.js (18+). There are no dependencies to install.
+refusal. Requires only Node.js 20 or newer, and there is nothing to install.
+
+(On Node 22+ you can also run the whole folder with
+`node --test "tests/**/*.test.mjs"`. Older versions do not expand that glob,
+which is why the explicit path is given above.)
 
 ### C# business rules and the secure service
 

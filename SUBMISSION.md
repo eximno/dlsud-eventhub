@@ -313,7 +313,7 @@ database" is proved rather than assumed.
 ### `tests/validation.test.mjs` — `node:test`, zero dependencies
 
 ```bash
-node --test "tests/**/*.test.mjs"
+node --test tests/validation.test.mjs
 ```
 
 **Result: 31 tests, 31 passed.** These cover the same e-mail, seat and
@@ -430,7 +430,7 @@ saying which tests actually ran.
 
 | Check | Result |
 |---|---|
-| `node --test "tests/**/*.test.mjs"` | **31 tests, 31 passed** |
+| `node --test tests/validation.test.mjs` | **31 tests, 31 passed** |
 | SQLite schema + seed executed, `PRAGMA foreign_key_check` | **clean** |
 | 16 negative constraint inserts + 1 valid insert | **all bad data rejected, valid data accepted** (after fixing log entry 1) |
 | `node --check` on all 5 frontend modules | **clean** |
