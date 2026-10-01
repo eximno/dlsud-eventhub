@@ -40,12 +40,6 @@
 | Member 4 | Calvin Bellen | QA & Security Engineer | Task 4 |
 
 ---|---|---|
-| Timothy Delmoro | Systems Architect & Prompt Lead | Task 1 + Task 5 |
-| Justin Basilides | Frontend Engineer | Task 2 |
-| Aian Cuento | Database & Backend Engineer | Task 3 |
-| Calvin Bellen | QA & Security Engineer | Task 4 |
-
----
 
 ## 2. Task 1 — Requirements Analysis & Prompt Architecture
 
