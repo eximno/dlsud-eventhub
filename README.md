@@ -290,13 +290,18 @@ confirmed registrations than its capacity, the view reports `0` seats and
 
 ### Seed data
 
-Eight sample events, eight colleges, 112 fictitious students and 115
+Nine sample events, eight colleges, 112 fictitious students and 115
 registrations, deliberately including:
 
 - a **full** event (Cybersecurity Awareness Workshop, 60/60) — proves rejection at capacity
 - an **almost full** event (Developer Workshop, 39/40) — proves the "last seat" state
+- an **untouched** event (Campus Mental Health Forum, 0/180) — proves the
+  "all seats available" card and the empty attendee list in the admin view
 - a **past** event (Campus Tech Summit) — proves registration is closed
 - a **cancelled** registration — proves cancelled rows are excluded from seat counts
+
+Every UI state the application can render is reachable from the seed data; none
+of them needs you to register first to be seen.
 
 ### Inspecting the SQL outside the browser
 
@@ -403,13 +408,14 @@ python3 -m http.server 8123 &
 node tests/browser-checks.mjs
 ```
 
-82 checks drive a real Chromium against the running site: catalog rendering,
-search and filters, wildcard and SQL-ish search input, every invalid event-id
-form, form validation, a successful registration, duplicate and
-identity-conflict refusals, rapid repeat clicks, the admin dashboard and
-reset, three mobile widths, keyboard focus order, blocked `localStorage`, and a
-simulated database-initialisation failure. It also fails if the browser
-console logs a single error.
+91 checks drive a real Chromium against the running site: catalog rendering,
+search and filters, wildcard and SQL-ish search input, malformed catalog query
+parameters, every invalid event-id form, form validation, Enter-to-submit, a
+successful registration, duplicate and identity-conflict refusals, rapid repeat
+clicks, persistence across a reload, the admin dashboard with its empty and
+cancelled states and its reset, three mobile widths, keyboard focus order,
+blocked `localStorage`, and a simulated database-initialisation failure. It
+also fails if the browser console logs a single error.
 
 ### Static analysis actually run against this repository
 
@@ -420,7 +426,7 @@ console logs a single error.
 | `html-validate` (recommended + document + a11y presets) | clean |
 | `axe-core` 4.10 on all pages and states, at 1280 px and 320 px | 0 violations |
 | SQLite constraint tests (31 negative + positive cases via Python's `sqlite3`) | all constraints reject invalid data |
-| Playwright end-to-end checks | 82/82, no console errors |
+| Playwright end-to-end checks | 91/91, no console errors |
 
 ---
 

@@ -161,6 +161,8 @@ not allowed to reach for.
 | Reloads mid-flow | the `localStorage` snapshot restores the database, so a confirmed seat is still confirmed |
 | Opens `event.html` with no id, `id=abc`, `id=0`, `id=-5`, `id=1.5` or an unknown id | a "not found" page with an explanation and a link back — never a crash or a blank page |
 | Searches for something with no matches | an empty state that says what to try next, announced in a live region |
+| Opens an event nobody has registered for | all seats shown as available; the admin attendee list shows "No one has registered for this event yet", not a blank table |
+| Passes a bogus `?category=` or `?when=` to the catalog | the value is checked against what the `<select>` actually offers and ignored if unknown, so the full catalog is shown rather than an empty one |
 | Searches with `%`, `_` or `'; DROP TABLE events;--` | treated as literal text: `LIKE` wildcards are escaped and the term is a bound parameter |
 | Clears the filters | everything resets and focus returns to the search box |
 | Uses the browser back button | filters are mirrored into the URL with `replaceState`, so the catalog view is restored |
@@ -431,7 +433,7 @@ saying which tests actually ran.
 | ESLint 9 (`no-undef`, `no-unused-vars`, `eqeqeq`, `no-eval`, `no-implied-eval`, `no-new-func`, `curly`, …) | **clean** (after fixing log entry 10) |
 | `html-validate` 8 (recommended + document + a11y presets) | **clean** (after fixing log entries 4 and 5) |
 | `axe-core` 4.10 on 6 page states, at 1280 px and 320 px | **0 violations** (after fixing log entry 3) |
-| `node tests/browser-checks.mjs` in Chromium | **82 checks, 82 passed, 0 console errors, 0 uncaught errors, 0 failed requests** |
+| `node tests/browser-checks.mjs` in Chromium | **91 checks, 91 passed, 0 console errors, 0 uncaught errors, 0 failed requests** |
 
 ### Not executed here
 
@@ -494,6 +496,6 @@ reached for a stack this examination cannot run.
 | `SUBMISSION.md` satisfies every task | ✅ Tasks 1, 2, 3, 4A, 4B |
 | AI disclosure exists | ✅ in both documents |
 | Verification log exists | ✅ 10 entries, all real |
-| No obvious console / runtime errors | ✅ 0 across 82 browser checks |
+| No obvious console / runtime errors | ✅ 0 across 91 browser checks |
 | No obvious prototype security vulnerability | ✅ audited above; architectural limits documented, not hidden |
 | No unnecessary framework or infrastructure | ✅ zero runtime dependencies beyond vendored sql.js |

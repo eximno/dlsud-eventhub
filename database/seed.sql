@@ -64,7 +64,11 @@ INSERT INTO events (event_id, title, description, event_date, location, capacity
 
     (8, 'Campus Tech Summit 2026',
         'Sample campus event that has already taken place. Kept in the seed data so the catalog can demonstrate how past events are presented and why they are closed for registration.',
-        '2026-08-20T09:00', 'Ayuntamiento Hall', 100, 'Technology');
+        '2026-08-20T09:00', 'Ayuntamiento Hall', 100, 'Technology'),
+
+    (9, 'Campus Mental Health Forum',
+        'Sample campus event with no registrations yet, kept in the seed data so the "all seats available" card and the empty attendee list in the admin dashboard can both be demonstrated. Guidance counsellors discuss managing academic load, sleep and burnout during thesis season.',
+        '2026-12-10T13:00', 'Paggawa Auditorium', 180, 'Seminar');
 
 -- -----------------------------------------------------------------------------
 -- Users - named sample students (fictitious)

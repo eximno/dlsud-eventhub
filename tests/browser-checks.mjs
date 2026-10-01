@@ -59,8 +59,8 @@ await page.goto(`${BASE}/frontend/index.html`, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length > 0, { timeout: 15000 });
 
 const cardCount = await page.locator('#event-list .event-card').count();
-check('catalog renders upcoming event cards', cardCount === 7, `got ${cardCount}`);
-check('hero stat: upcoming events', (await page.locator('#stat-upcoming').textContent()).trim() === '7');
+check('catalog renders upcoming event cards', cardCount === 8, `got ${cardCount}`);
+check('hero stat: upcoming events', (await page.locator('#stat-upcoming').textContent()).trim() === '8');
 const seatsText = (await page.locator('#stat-seats').textContent()).trim();
 check('hero stat: seats available populated', /^[\d,]+$/.test(seatsText), seatsText);
 check('results meta announced', (await page.locator('#results-meta').textContent()).includes('upcoming event'));
@@ -96,8 +96,8 @@ const afterInjection = await page.locator('#event-list .state').count();
 check('SQL-ish search text is harmless', afterInjection === 1, `state count ${afterInjection}`);
 
 await page.click('#clear-filters');
-await page.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length === 7, { timeout: 5000 });
-check('clear filters restores the catalog', (await page.locator('#event-list .event-card').count()) === 7);
+await page.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length === 8, { timeout: 5000 });
+check('clear filters restores the catalog', (await page.locator('#event-list .event-card').count()) === 8);
 check('focus returns to the search box after clearing',
     await page.evaluate(() => document.activeElement && document.activeElement.id === 'search-input'));
 
@@ -106,14 +106,17 @@ await page.selectOption('#when-filter', 'past');
 await page.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length === 1, { timeout: 5000 });
 check('past filter shows the one past event', (await page.locator('#event-list .event-card').count()) === 1);
 await page.selectOption('#when-filter', 'all');
-await page.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length === 8, { timeout: 5000 });
-check('all filter shows every event', (await page.locator('#event-list .event-card').count()) === 8);
+await page.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length === 9, { timeout: 5000 });
+check('all filter shows every event', (await page.locator('#event-list .event-card').count()) === 9);
 
 /* category filter */
 await page.selectOption('#when-filter', 'upcoming');
 await page.selectOption('#category-filter', 'Workshop');
 await page.waitForTimeout(400);
 check('category filter works', (await page.locator('#event-list .event-card').count()) === 1);
+await page.selectOption('#category-filter', 'Seminar');
+await page.waitForTimeout(400);
+check('category with several matches works', (await page.locator('#event-list .event-card').count()) === 2);
 await page.click('#clear-filters');
 
 /* Enter key inside the search field must not reload or error */
@@ -122,6 +125,24 @@ await page.press('#search-input', 'Enter');
 await page.waitForTimeout(400);
 check('Enter in the search field does not break the page',
     (await page.locator('#event-list .event-card').count()) >= 1);
+
+/* ---------- 2b. Malformed catalog query parameters ---------- */
+for (const [label, query, expected] of [
+    ['unknown category', '?category=NotACategory', 8],
+    ['injection category', "?category=' OR 1=1 --", 8],
+    ['unknown when value', '?when=sometime', 8],
+    ['oversized search', '?q=' + encodeURIComponent('x'.repeat(500)), 0]
+]) {
+    await page.goto(`${BASE}/frontend/index.html${query}`, { waitUntil: 'networkidle' });
+    await page.waitForFunction(() => {
+        const list = document.querySelector('#event-list');
+        return list && !list.querySelector('.skeleton-card');
+    }, { timeout: 15000 }).catch(() => {});
+    const count = await page.locator('#event-list .event-card').count();
+    check(`malformed catalog URL (${label}) falls back safely`, count === expected, `got ${count}`);
+}
+await page.goto(`${BASE}/frontend/index.html`, { waitUntil: 'networkidle' });
+await page.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length > 0, { timeout: 15000 });
 
 /* ---------- 3. Keyboard navigation ---------- */
 await page.goto(`${BASE}/frontend/index.html`, { waitUntil: 'networkidle' });
@@ -200,6 +221,15 @@ await page.click('#registration-form button[type="submit"]');
 await page.waitForTimeout(150);
 check('short student number rejected', (await page.locator('#student-id-error').textContent()).includes('digits'));
 
+/* Enter pressed inside a text field must run our validation, not reload */
+await page.fill('#full-name', 'Enter Key');
+await page.press('#full-name', 'Enter');
+await page.waitForTimeout(250);
+check('Enter inside a field submits through our handler',
+    page.url().includes('event.html?id=1'), page.url());
+check('Enter submit reports the remaining invalid fields',
+    (await page.locator('#form-alert').textContent()).includes('attention'));
+
 /* ---------- 8. Registration: success, duplicate, persistence ---------- */
 await page.fill('#full-name', 'Test Student');
 await page.fill('#student-id', '20259999');
@@ -260,8 +290,8 @@ check('triple click creates exactly one registration', Number(dupCount) === 1, S
 
 /* ---------- 9. Admin page ---------- */
 await page.goto(`${BASE}/frontend/admin.html`, { waitUntil: 'networkidle' });
-await page.waitForFunction(() => document.querySelectorAll('#admin-events-body tr').length >= 8, { timeout: 15000 });
-check('admin lists every event', (await page.locator('#admin-events-body tr').count()) === 8);
+await page.waitForFunction(() => document.querySelectorAll('#admin-events-body tr').length >= 9, { timeout: 15000 });
+check('admin lists every event', (await page.locator('#admin-events-body tr').count()) === 9);
 check('admin shows five summary tiles', (await page.locator('#admin-stats .stat').count()) === 5);
 check('admin warns that it is not secure',
     (await page.locator('.alert--warn').first().textContent()).includes('no authentication'));
@@ -282,6 +312,14 @@ await page.waitForTimeout(400);
 const devRows = await page.locator('#attendee-body tr').count();
 check('event with registrations still lists rows', devRows === 39, String(devRows));
 
+/* the event nobody has registered for must show an empty state, not a blank table */
+await page.selectOption('#attendee-event', { label: 'Campus Mental Health Forum' });
+await page.waitForTimeout(400);
+check('event with no registrations shows an empty attendee state',
+    (await page.locator('#attendee-body').textContent()).includes('No one has registered'));
+check('empty attendee state is announced',
+    (await page.locator('#attendee-meta').textContent()).includes('No registrations'));
+
 /* cancelled registrations are visible but excluded from counts */
 await page.selectOption('#attendee-event', { label: 'Tech Career Talk 2026' });
 await page.waitForTimeout(400);
@@ -297,7 +335,7 @@ await page.waitForFunction(() => {
 }, { timeout: 15000 });
 check('reset rebuilds the prototype data', true);
 const resetRows = await page.locator('#admin-events-body tr').count();
-check('after reset there are 8 events again', resetRows === 8, String(resetRows));
+check('after reset there are 9 events again', resetRows === 9, String(resetRows));
 
 /* ---------- 10. Responsive ---------- */
 for (const vp of [{ width: 320, height: 640 }, { width: 375, height: 667 }, { width: 768, height: 1024 }]) {
@@ -332,7 +370,7 @@ blocked.on('pageerror', (e) => blockedErrors.push(e.message));
 await blocked.goto(`${BASE}/frontend/index.html`, { waitUntil: 'networkidle' });
 await blocked.waitForFunction(() => document.querySelectorAll('#event-list .event-card').length > 0, { timeout: 15000 }).catch(() => {});
 check('catalog still works when localStorage is blocked',
-    (await blocked.locator('#event-list .event-card').count()) === 7);
+    (await blocked.locator('#event-list .event-card').count()) === 8);
 check('blocked storage produces a visible warning, not a crash',
     (await blocked.locator('#page-alert').textContent()).includes('Browser storage is unavailable'));
 check('blocked storage causes no uncaught errors', blockedErrors.length === 0, blockedErrors.join('; '));
