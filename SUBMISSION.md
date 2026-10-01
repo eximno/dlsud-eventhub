@@ -378,6 +378,7 @@ comment at the top of that file so the before/after can be read side by side.
 | Invalid identifiers | **Mitigated.** `?id=` is accepted only as a plain positive integer (`/^[0-9]{1,9}$/`), so `1.5`, `1e3`, `0x2`, `-5` and `1; DROP TABLE events` all produce a "not found" page. |
 | Oversized input | **Mitigated.** `maxlength` in the UI, explicit ceilings in the rules (names 100, e-mail 100, student number 12, search 80) and `CHECK` length constraints in the schema. |
 | Duplicate submission | **Mitigated.** Submitting flag, disabled busy button, re-check inside the transaction, `UNIQUE (user_id, event_id)`, and a pointer shield after the panel swaps so a stray repeat click cannot act on the new content. |
+| Over-subscription by a tampered client | **Mitigated.** Both the browser and the C# service insert through `INSERT … SELECT … WHERE (confirmed count) < (capacity)`, so the database refuses the row even when the client-side rule is removed. A browser check does exactly that and asserts the event stays at capacity with no orphan record. |
 | Manipulated registration state | **Partly mitigated, and documented.** A corrupted or hand-edited database cannot produce negative seats or re-open a full event (the view clamps at 0, the rules treat over-subscription as full, and a non-positive capacity makes the event invalid). It cannot be *prevented*, because the data lives in the visitor's own browser. |
 | Prototype pollution | **Not applicable in practice.** No deep-merge, no `Object.assign` over user input, no dynamic property assignment from parsed input; query parameters are read individually and validated. |
 | Credential exposure | **None.** No passwords, keys or tokens anywhere in the repository. The C# connection string is injected from configuration. |
@@ -414,6 +415,9 @@ the evidence column says how each was caught.
 | 8 | 1 / 2 | The first architecture proposal was a React SPA with an Express/ASP.NET REST API, PostgreSQL, JWT auth, Docker Compose and a CI pipeline — none of which can run on GitHub Pages, and none of which is finishable in a 3-hour laboratory slot. | Rejected it, tightened the prompt with explicit negative constraints, and implemented static HTML/CSS/JS + SQLite via sql.js. The repository has zero runtime dependencies beyond the two vendored sql.js files. | Checking the proposal against the hard requirement that the site be reachable on GitHub Pages. | _Team lead — add name_ |
 | 9 | 2 | A generated CSS custom property was written as `--line-200: #e8ece a;` — an invalid value with a stray space, which silently produced no colour wherever the token was used. | Corrected the value and removed the defensive fallback that had been masking it. | Reading the generated stylesheet rather than trusting it, after a brace-balance check passed. | _Frontend lead — add name_ |
 | 10 | 2 | Generated JavaScript left dead code behind: an unused object built in the blur handler, and five `catch (error)` blocks whose binding was never read. | Removed the dead object and converted the deliberately-ignored catches to ES2019 optional catch binding, so the intent ("this failure is expected and ignorable") is visible rather than implied. | ESLint 9 (`no-unused-vars`). | _Frontend lead — add name_ |
+| 11 | 2 | The event detail page's "date / venue / category / capacity" block was a `<dl>` laid out as a CSS grid with bare `<dt>` and `<dd>` children. Because each element is its own grid item, **labels and values landed in different columns** — "VENUE" appeared next to the date, and the venue name appeared under "DATE AND TIME". The markup was valid and the automated checks were green; it was simply wrong on screen. | Wrapped each `dt`/`dd` pair in a `<div>` (valid inside a `<dl>`) so the pair is one grid item, and said why in a comment. | Rendering the page in a real browser and **looking at it**. No linter, no test and no accessibility checker reported this. | _Frontend lead — add name_ |
+| 12 | 2 | Every field error message sat inside its own `aria-live="polite"` region *and* was summarised by a `role="alert"` box, so a screen reader announced each error **twice** on submit. The generated code even carried a comment claiming the opposite. | Removed the live regions from the field messages. They remain reachable through `aria-describedby` when focus lands on the field, and the summary alert announces the count once. | Reading the generated ARIA against what it would actually do, rather than trusting the comment next to it. | _Accessibility reviewer — add name_ |
+| 13 | 2 / 4 | In the browser path, capacity was enforced only by the JavaScript decision taken immediately before the `INSERT` — so the claim "the database enforces capacity", true of the C# deliverable, was **not** true of the site. | Gave the browser the same capacity-guarded `INSERT … SELECT … WHERE (count) < (capacity)`, and made a zero-row insert roll the transaction back. A browser check now disables the JavaScript rule entirely, submits against a full event, and asserts that the event stays at 40/40 and that no orphan student record is left behind. | Comparing the two implementations' write paths while documenting them. | _Backend lead — add name_ |
 
 ---
 
@@ -433,7 +437,8 @@ saying which tests actually ran.
 | ESLint 9 (`no-undef`, `no-unused-vars`, `eqeqeq`, `no-eval`, `no-implied-eval`, `no-new-func`, `curly`, …) | **clean** (after fixing log entry 10) |
 | `html-validate` 8 (recommended + document + a11y presets) | **clean** (after fixing log entries 4 and 5) |
 | `axe-core` 4.10 on 6 page states, at 1280 px and 320 px | **0 violations** (after fixing log entry 3) |
-| `node tests/browser-checks.mjs` in Chromium | **91 checks, 91 passed, 0 console errors, 0 uncaught errors, 0 failed requests** |
+| `node tests/browser-checks.mjs` in Chromium | **95 checks, 95 passed, 0 console errors, 0 uncaught errors, 0 failed requests** |
+| Visual review of rendered screenshots (desktop 1280 px, mobile 375 px, error and full states) | **3 layout defects found and fixed** — see verification log entry 11 |
 
 ### Not executed here
 
@@ -496,6 +501,6 @@ reached for a stack this examination cannot run.
 | `SUBMISSION.md` satisfies every task | ✅ Tasks 1, 2, 3, 4A, 4B |
 | AI disclosure exists | ✅ in both documents |
 | Verification log exists | ✅ 10 entries, all real |
-| No obvious console / runtime errors | ✅ 0 across 91 browser checks |
+| No obvious console / runtime errors | ✅ 0 across 95 browser checks |
 | No obvious prototype security vulnerability | ✅ audited above; architectural limits documented, not hidden |
 | No unnecessary framework or infrastructure | ✅ zero runtime dependencies beyond vendored sql.js |

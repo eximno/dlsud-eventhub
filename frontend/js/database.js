@@ -297,6 +297,15 @@ window.EventHubDB = (function () {
     }
 
     /**
+     * How many rows the most recent statement actually changed. Needed because
+     * a conditional INSERT that inserts nothing is a successful statement, not
+     * an error - the caller has to ask.
+     */
+    function rowsModified() {
+        return requireDb().getRowsModified();
+    }
+
+    /**
      * Run `work` inside a SQLite transaction. Any throw rolls back, so a
      * half-finished registration can never be committed.
      */
@@ -337,6 +346,7 @@ window.EventHubDB = (function () {
         scalar: scalar,
         run: run,
         lastInsertId: lastInsertId,
+        rowsModified: rowsModified,
         transaction: transaction,
         persist: persist,
         getState: getState,

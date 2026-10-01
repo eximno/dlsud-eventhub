@@ -168,6 +168,12 @@
      * tab, or two rapid clicks therefore cannot push an event past capacity.
      * =================================================================== */
 
+    /* Thrown from inside the registration transaction when the capacity-guarded
+     * INSERT writes nothing. Throwing (rather than returning) is deliberate: it
+     * rolls the transaction back, so a student record created a moment earlier
+     * is not left behind without a seat. */
+    var SEAT_TAKEN = 'EVENTHUB_SEAT_TAKEN';
+
     function buildReference(eventId, registrationId) {
         return 'EH-' + String(eventId).padStart(3, '0') +
                '-' + String(registrationId).padStart(4, '0');
@@ -250,10 +256,22 @@
                 );
             }
 
+            /* The capacity rule is re-applied by the INSERT itself, so the
+             * database is the thing enforcing it rather than the code above.
+             * This mirrors SqliteRegistrationRepository in the C# deliverable.
+             * Zero rows inserted means the event filled up first. */
             DB.run(
-                'INSERT INTO registrations (user_id, event_id, status) VALUES (?, ?, \'confirmed\')',
-                [user.user_id, eventId]
+                'INSERT INTO registrations (user_id, event_id, status) ' +
+                'SELECT ?, ?, \'confirmed\' ' +
+                ' WHERE (SELECT COUNT(*) FROM registrations r ' +
+                '          WHERE r.event_id = ? AND r.status = \'confirmed\') ' +
+                '     < (SELECT e.capacity FROM events e WHERE e.event_id = ?)',
+                [user.user_id, eventId, eventId, eventId]
             );
+
+            if (DB.rowsModified() !== 1) {
+                throw new Error(SEAT_TAKEN);
+            }
 
             var registrationId = DB.lastInsertId();
             return {
@@ -479,8 +497,14 @@
              ['Category', row.category],
              ['Capacity', row.capacity + ' seats']
             ].forEach(function (pair) {
-                meta.appendChild(Events.el('dt', null, pair[0]));
-                meta.appendChild(Events.el('dd', null, pair[1]));
+                /* Each pair goes in its own wrapper, which is valid inside a
+                 * <dl> and is what makes the grid columns line up: bare dt and
+                 * dd elements are separate grid items, so a label and its value
+                 * would otherwise land in different columns. */
+                var cell = Events.el('div');
+                cell.appendChild(Events.el('dt', null, pair[0]));
+                cell.appendChild(Events.el('dd', null, pair[1]));
+                meta.appendChild(cell);
             });
             article.appendChild(meta);
 
@@ -587,9 +611,10 @@
 
                 var error = Events.el('span', 'field__error');
                 error.id = spec.id + '-error';
-                /* Polite, not assertive: the error is also announced by the
-                 * summary alert, and double-announcing is noisy. */
-                error.setAttribute('aria-live', 'polite');
+                /* Deliberately NOT a live region: the message is reachable
+                 * through aria-describedby when focus lands on the field, and
+                 * the count is announced once by the summary alert. Making
+                 * these live too would read every error twice. */
                 wrap.appendChild(error);
 
                 legendWrap.appendChild(wrap);
@@ -625,7 +650,6 @@
             deptWrap.appendChild(select);
             var deptError = Events.el('span', 'field__error');
             deptError.id = 'department-error';
-            deptError.setAttribute('aria-live', 'polite');
             deptWrap.appendChild(deptError);
             legendWrap.appendChild(deptWrap);
 
@@ -735,13 +759,21 @@
                     try {
                         result = submitRegistration(row.event_id, check.values);
                     } catch (error) {
-                        result = {
-                            ok: false,
-                            code: 'UNEXPECTED',
-                            message: 'The registration could not be saved because of an unexpected error. ' +
-                                     'Nothing was recorded; please try again.'
-                        };
-                        if (window.console) { window.console.error(error); }
+                        if (error && error.message === SEAT_TAKEN) {
+                            result = {
+                                ok: false,
+                                code: Registration.OUTCOME.EVENT_FULL,
+                                message: 'The last seat was taken while you were registering. No seats remain.'
+                            };
+                        } else {
+                            result = {
+                                ok: false,
+                                code: 'UNEXPECTED',
+                                message: 'The registration could not be saved because of an unexpected error. ' +
+                                         'Nothing was recorded; please try again.'
+                            };
+                            if (window.console) { window.console.error(error); }
+                        }
                     }
 
                     submitting = false;

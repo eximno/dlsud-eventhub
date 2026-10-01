@@ -408,14 +408,15 @@ python3 -m http.server 8123 &
 node tests/browser-checks.mjs
 ```
 
-91 checks drive a real Chromium against the running site: catalog rendering,
+95 checks drive a real Chromium against the running site: catalog rendering,
 search and filters, wildcard and SQL-ish search input, malformed catalog query
 parameters, every invalid event-id form, form validation, Enter-to-submit, a
 successful registration, duplicate and identity-conflict refusals, rapid repeat
 clicks, persistence across a reload, the admin dashboard with its empty and
 cancelled states and its reset, three mobile widths, keyboard focus order,
-blocked `localStorage`, and a simulated database-initialisation failure. It
-also fails if the browser console logs a single error.
+blocked `localStorage`, a simulated database-initialisation failure, and a
+tampered client that removes the JavaScript capacity rule and is still refused
+by the database. It also fails if the browser console logs a single error.
 
 ### Static analysis actually run against this repository
 
@@ -426,7 +427,7 @@ also fails if the browser console logs a single error.
 | `html-validate` (recommended + document + a11y presets) | clean |
 | `axe-core` 4.10 on all pages and states, at 1280 px and 320 px | 0 violations |
 | SQLite constraint tests (31 negative + positive cases via Python's `sqlite3`) | all constraints reject invalid data |
-| Playwright end-to-end checks | 91/91, no console errors |
+| Playwright end-to-end checks | 95/95, no console errors |
 
 ---
 
@@ -515,6 +516,12 @@ What the prototype *does* get right, and why it is worth doing even here:
   terms are length-limited in the UI, in the rules and in the schema.
 - **Untrusted URL parameters.** Event ids from the query string are accepted
   only as plain positive integers; anything else shows a "not found" page.
+  Catalog filters from the query string are checked against the values the
+  controls actually offer.
+- **The database, not the UI, enforces capacity.** Registrations are written
+  with `INSERT … SELECT … WHERE (confirmed count) < (capacity)`, in the browser
+  and in the C# service alike, so removing the client-side rule does not buy an
+  extra seat.
 - **No credentials in source control.** The C# connection string is injected
   from configuration; the repository contains no passwords, keys or tokens.
 - **Honest failure.** A blocked `localStorage`, a missing `.sql` file or a

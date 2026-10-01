@@ -390,6 +390,52 @@ await broken.close();
     results.push('FAIL  SCRIPT ABORTED: ' + err.message.split('\n')[0]);
     failures++;
 }
+/* ---------- 14. Tampered client: the database must still refuse ---------- */
+{
+    const tampered = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const tp = await tampered.newPage();
+    tp.on('pageerror', (e) => pageErrors.push(`tampered :: ${e.message}`));
+    await tp.goto(`${BASE}/frontend/event.html?id=6`, { waitUntil: 'networkidle' });
+    await tp.waitForSelector('#registration-form', { timeout: 15000 });
+
+    /* Fill the last seat behind the page's back (as a second tab would), then
+     * disable the client-side rule entirely. The INSERT is the only thing left
+     * standing between the form and an over-subscribed event. */
+    const seated = await tp.evaluate(() => {
+        window.EventHubDB.run(
+            "INSERT INTO registrations (user_id, event_id, status) " +
+            "SELECT user_id, 6, 'confirmed' FROM users WHERE email = ?",
+            ['althea.mariano@dlsud.edu.ph']);
+        window.Registration.evaluate = function () {
+            return { allowed: true, code: 'ALLOWED', message: '', availability: null };
+        };
+        return Number(window.EventHubDB.scalar(
+            "SELECT COUNT(*) FROM registrations WHERE event_id = 6 AND status = 'confirmed'"));
+    });
+    check('setup: event 6 is now exactly full', seated === 40, String(seated));
+
+    await tp.fill('#full-name', 'Tamper Test');
+    await tp.fill('#student-id', '20257777');
+    await tp.fill('#email', 'tamper.test@dlsud.edu.ph');
+    await tp.selectOption('#department', { index: 1 });
+    await tp.click('#registration-form button[type="submit"]');
+    await tp.waitForTimeout(800);
+
+    check('bypassing the client rule does not create a seat',
+        (await tp.locator('#form-alert').textContent()).toLowerCase().includes('last seat was taken'));
+
+    const after = await tp.evaluate(() => ({
+        confirmed: Number(window.EventHubDB.scalar(
+            "SELECT COUNT(*) FROM registrations WHERE event_id = 6 AND status = 'confirmed'")),
+        orphan: Number(window.EventHubDB.scalar(
+            'SELECT COUNT(*) FROM users WHERE email = ?', ['tamper.test@dlsud.edu.ph']))
+    }));
+    check('the event is still at capacity, not over it', after.confirmed === 40, String(after.confirmed));
+    check('the rolled-back transaction left no orphan student record',
+        after.orphan === 0, String(after.orphan));
+    await tampered.close();
+}
+
 await browser.close();
 
 console.log(results.join('\n'));
