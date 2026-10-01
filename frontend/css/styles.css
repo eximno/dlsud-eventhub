@@ -189,17 +189,9 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monosp
     color: inherit;
 }
 .brand__mark {
-    display: grid;
-    place-items: center;
     width: 42px; height: 42px;
     flex: 0 0 auto;
-    border-radius: var(--radius-md);
-    background: var(--green-700);
-    color: #fff;
-    font-weight: 800;
-    font-size: .78rem;
-    letter-spacing: .02em;
-    border-bottom: 3px solid var(--gold-500);
+    object-fit: contain;
 }
 .brand__name { font-weight: 800; font-size: 1.12rem; line-height: 1.1; }
 .brand__name span { color: var(--green-700); }
